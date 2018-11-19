@@ -1,0 +1,69 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>aistdoc</ToolCommandName>
+    <PackageOutputPath>./dist</PackageOutputPath>
+
+    <PackageId>Aistant.DocImport</PackageId>
+    <PackageVersion>1.0.3</PackageVersion>
+    <Authors>Aistant</Authors>
+    <Description></Description>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <Copyright>Copyright 2018 (c) Aistant. All rights reserved.</Copyright>
+    <PackageTags>aistant doc documentation xmldoc xml</PackageTags>
+
+    <RootNamespace>aistdoc</RootNamespace>
+
+    <Product>aistdoc</Product>
+
+    <Version>1.0.3</Version>
+
+    <PackageProjectUrl>https://aistant.com</PackageProjectUrl>
+
+    <PackageIconUrl>https://aistant.com/assets/img/logo-small.png</PackageIconUrl>
+
+    <AssemblyVersion>1.0.3.7</AssemblyVersion>
+
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+
+    <FileVersion>1.0.3.7</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\config.json" />
+    <None Remove="Resources\help.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\config.json" />
+    <EmbeddedResource Include="Resources\help.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="MarkdownGenerator\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AistantKbService\KbService.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="aistdoc.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,18 @@
+﻿	This is a commandline application which can help you 
+with generating documatation due to your source code 
+and xml comments.
+
+	PUBLISH your library or application to one folder with docxml files
+and set path to this file in config file folder
+
+Usage: 
+
+aistdoc 
+
+	-h | --help                Shows commands and their descriptions
+							
+	--config:<configfile path> Loads configfile with current path
+
+	--create:<configfile name> Creates configfile template with current name
+
+	--output:<path> Generate documentation to current folder

@@ -9,29 +9,32 @@
     <PackageOutputPath>./dist</PackageOutputPath>
 
     <PackageId>Aistant.DocImport</PackageId>
-    <PackageVersion>1.0.3</PackageVersion>
+    <PackageVersion>1.0.4</PackageVersion>
     <Authors>Aistant</Authors>
-    <Description></Description>
+    <Description>
+      Aistdoc generates documentation (an API reference) for your .NET/C# code (with XML Documentation comments) and 
+      publishes it on the web via Aistant (https://aistant.com) service.
+    </Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageReleaseNotes></PackageReleaseNotes>
     <Copyright>Copyright 2018 (c) Aistant. All rights reserved.</Copyright>
-    <PackageTags>aistant doc documentation xmldoc xml</PackageTags>
+    <PackageTags>aistant doc documentation api reference xmldocs comments</PackageTags>
 
-    <RootNamespace>aistdoc</RootNamespace>
+    <RootNamespace>Aistant</RootNamespace>
 
     <Product>aistdoc</Product>
 
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
 
-    <PackageProjectUrl>https://aistant.com</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/korzh/aistdoc</PackageProjectUrl>
 
     <PackageIconUrl>https://aistant.com/assets/img/logo-small.png</PackageIconUrl>
 
-    <AssemblyVersion>1.0.3.7</AssemblyVersion>
+    <AssemblyVersion>1.0.4.8</AssemblyVersion>
 
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
-    <FileVersion>1.0.3.7</FileVersion>
+    <FileVersion>1.0.4.8</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

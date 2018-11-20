@@ -3,38 +3,33 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+
+    <RootNamespace>Aistant</RootNamespace>
+    <Product>aistdoc</Product>
+    <Version>1.0.4</Version>
+    <AssemblyVersion>1.0.4.8</AssemblyVersion>
+    <FileVersion>1.0.4.8</FileVersion>
+    <Title>Aistdoc</Title>
+    <Description>
+      Aistdoc generates documentation (an API reference) for your .NET/C# code (with XML Documentation comments) and
+      publishes it on the web via Aistant (https://aistant.com) service.
+    </Description>
+    <Authors>Sergiy Korzh, Anton Ivanenko</Authors>
+    <Copyright>Copyright 2018 (c) Sergiy Korzh. All rights reserved.</Copyright>
 
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>aistdoc</ToolCommandName>
     <PackageOutputPath>./dist</PackageOutputPath>
-
     <PackageId>Aistant.DocImport</PackageId>
     <PackageVersion>1.0.4</PackageVersion>
-    <Authors>Aistant</Authors>
-    <Description>
-      Aistdoc generates documentation (an API reference) for your .NET/C# code (with XML Documentation comments) and 
-      publishes it on the web via Aistant (https://aistant.com) service.
-    </Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageReleaseNotes></PackageReleaseNotes>
-    <Copyright>Copyright 2018 (c) Aistant. All rights reserved.</Copyright>
     <PackageTags>aistant doc documentation api reference xmldocs comments</PackageTags>
-
-    <RootNamespace>Aistant</RootNamespace>
-
-    <Product>aistdoc</Product>
-
-    <Version>1.0.4</Version>
-
-    <PackageProjectUrl>https://github.com/korzh/aistdoc</PackageProjectUrl>
-
+    <PackageProjectUrl>https://docs.aistant.com/en/tutorials/publish-api-reference-net-class-library</PackageProjectUrl>
     <PackageIconUrl>https://aistant.com/assets/img/logo-small.png</PackageIconUrl>
-
-    <AssemblyVersion>1.0.4.8</AssemblyVersion>
-
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-
-    <FileVersion>1.0.4.8</FileVersion>
+    <PackageLicenseUrl>https://github.com/korzh/aistdoc/blob/master/LICENSE</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/korzh/aistdoc</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

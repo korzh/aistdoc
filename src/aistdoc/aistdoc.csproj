@@ -12,7 +12,7 @@
     <FileVersion>1.0.4.8</FileVersion>
     <Title>Aistdoc</Title>
     <Description>
-      Aistdoc generates documentation (an API reference) for your .NET/C# code (with XML Documentation comments) and
+      A .NET Core global tool that generates documentation (an API reference) for your .NET/C# code (with XML Documentation comments) and
       publishes it on the web via Aistant (https://aistant.com) service.
     </Description>
     <Authors>Sergiy Korzh, Anton Ivanenko</Authors>

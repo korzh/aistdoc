@@ -7,22 +7,22 @@
 
     <RootNamespace>Aistant</RootNamespace>
     <Product>aistdoc</Product>
-    <Version>1.0.5</Version>
-    <AssemblyVersion>1.0.5.9</AssemblyVersion>
-    <FileVersion>1.0.5.9</FileVersion>
+    <Version>1.0.6</Version>
+    <AssemblyVersion>1.0.6.10</AssemblyVersion>
+    <FileVersion>1.0.6.10</FileVersion>
     <Title>Aistdoc</Title>
     <Description>A .NET Core global tool that generates documentation (an API reference) for your .NET/C# code (with XML Documentation comments) and publishes it on the web via Aistant (https://aistant.com) service.</Description>
     <Authors>Sergiy Korzh, Anton Ivanenko</Authors>
     <Copyright>Copyright 2018 (c) Sergiy Korzh. All rights reserved.</Copyright>
     <RepositoryUrl>https://github.com/korzh/aistdoc</RepositoryUrl>
 
-    <PackageVersion>1.0.5</PackageVersion>
+    <PackageVersion>1.0.6</PackageVersion>
     <PackageOutputPath>./dist</PackageOutputPath>
     <PackageId>Aistant.DocImport</PackageId>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageReleaseNotes></PackageReleaseNotes>
     <PackageTags>aistant doc documentation api reference xmldocs comments</PackageTags>
-    <PackageProjectUrl>https://docs.aistant.com/en/tutorials/publish-api-reference-net-class-library</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/korzh/aistdoc</PackageProjectUrl>
     <PackageIconUrl>https://aistant.com/assets/img/logo-small.png</PackageIconUrl>
     <PackageLicenseUrl>https://github.com/korzh/aistdoc/blob/master/LICENSE</PackageLicenseUrl>
 

@@ -11,12 +11,18 @@ namespace aistdoc
     {
         ExternalModule = 1,
         Module = 2,
+        Enumeration = 4,
         Function = 64,
         Class = 128,
         Interface = 256,
         Constructor = 512,
         Property = 1024,
         Method = 2048
+    }
+
+    public class TypeScriptEnumeration
+    {
+
     }
 
     public class TypeScriptType
@@ -417,6 +423,7 @@ namespace aistdoc
         public List<TypeScriptClass> Classes = new List<TypeScriptClass>();
         public List<TypeScriptInterface> Interfaces = new List<TypeScriptInterface>();
         public List<TypeScriptFunction> Functions = new List<TypeScriptFunction>();
+        public List<TypeScriptEnumeration> Enumerations = new List<TypeScriptEnumeration>();
 
         public void LoadFromJObject(JObject jobject)
         {
@@ -467,6 +474,7 @@ namespace aistdoc
         public List<TypeScriptInterface> Interfaces = new List<TypeScriptInterface>();
         public List<TypeScriptModule> Modules = new List<TypeScriptModule>();
         public List<TypeScriptFunction> Functions = new List<TypeScriptFunction>();
+        public List<TypeScriptEnumeration> Enumerations = new List<TypeScriptEnumeration>();
 
         public void LoadFromJObject(JObject jobject)
         {

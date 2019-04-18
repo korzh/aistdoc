@@ -214,6 +214,7 @@ namespace Aistant.KbService {
                 article.IndexTitle = title;
                 article.Title = title;
                 article.Uri = articleUri;
+                article.Excerpt = excerpt;
                 article.KbId = _currentKb.Id;
 
                 if (_mainSection != null) {

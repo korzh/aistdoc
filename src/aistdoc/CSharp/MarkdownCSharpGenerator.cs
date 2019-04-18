@@ -10,34 +10,34 @@ using System.Xml.Linq;
 
 namespace aistdoc 
 {
-    internal enum TypeKind {
+    internal enum CSharpTypeKind {
         Enum,
         Interface,
         Struct,
         Class
     }
 
-    internal class MarkdownableTypeEqualityComparer : IEqualityComparer<MarkdownableType> {
-        public bool Equals(MarkdownableType x, MarkdownableType y) {
+    internal class MarkdownableTypeEqualityComparer : IEqualityComparer<MarkdownableSharpType> {
+        public bool Equals(MarkdownableSharpType x, MarkdownableSharpType y) {
             return x.GetNameWithKind() == y.GetNameWithKind();
         }
 
-        public int GetHashCode(MarkdownableType obj) {
+        public int GetHashCode(MarkdownableSharpType obj) {
             return obj.GetNameWithKind().GetHashCode();
         }
     }
 
-    internal class MarkdownableType {
+    internal class MarkdownableSharpType {
 
         private readonly Type _type;
         public ILookup<string, XmlDocumentComment> CommentLookUp;
 
         public string Namespace => _type.Namespace;
         public string Name => _type.Name;
-        public TypeKind Kind => _type.IsInterface ? TypeKind.Interface : _type.IsEnum ? TypeKind.Enum : _type.IsValueType ? TypeKind.Struct : TypeKind.Class;
-        public string BeautifyName => Beautifier.BeautifyType(_type);
+        public CSharpTypeKind Kind => _type.IsInterface ? CSharpTypeKind.Interface : _type.IsEnum ? CSharpTypeKind.Enum : _type.IsValueType ? CSharpTypeKind.Struct : CSharpTypeKind.Class;
+        public string BeautifyName => CSharpBeautifier.BeautifyType(_type);
 
-        public MarkdownableType(Type type, ILookup<string, XmlDocumentComment> commentLookup) {
+        public MarkdownableSharpType(Type type, ILookup<string, XmlDocumentComment> commentLookup) {
             this._type = type;
             this.CommentLookUp = commentLookup;
         }
@@ -148,7 +148,7 @@ namespace aistdoc
         }
 
         public string GetFixedGenericTypeName() {
-            return Beautifier.BeautifyType(_type);
+            return CSharpBeautifier.BeautifyType(_type);
         }
 
         public string GetKindName() {
@@ -188,8 +188,8 @@ namespace aistdoc
                 var abst = (_type.IsAbstract && !_type.IsInterface && !_type.IsSealed) ? "abstract " : "";
                 var classOrStructOrEnumOrInterface = _type.IsInterface ? "interface" : _type.IsEnum ? "enum" : _type.IsValueType ? "struct" : "class";
 
-                sb.AppendLine($"public {stat}{abst}{classOrStructOrEnumOrInterface} {Beautifier.BeautifyType(_type, true)}");
-                var impl = string.Join(", ", new[] { _type.BaseType }.Concat(_type.GetInterfaces()).Where(x => x != null && x != typeof(object) && x != typeof(ValueType)).Select(x => Beautifier.BeautifyType(x)));
+                sb.AppendLine($"public {stat}{abst}{classOrStructOrEnumOrInterface} {CSharpBeautifier.BeautifyType(_type, true)}");
+                var impl = string.Join(", ", new[] { _type.BaseType }.Concat(_type.GetInterfaces()).Where(x => x != null && x != typeof(object) && x != typeof(ValueType)).Select(x => CSharpBeautifier.BeautifyType(x)));
                 if (impl != "") {
                     sb.AppendLine("    : " + impl);
                 }
@@ -208,14 +208,14 @@ namespace aistdoc
                 BuildTable(mb, "Enum", enums, CommentLookUp[_type.FullName], x => x.Value.ToString(), x => x.Name, x => x.Name);
             }
             else {
-                BuildTable(mb, "Fields", GetFields(), CommentLookUp[_type.FullName], x => Beautifier.BeautifyType(x.FieldType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Properties", GetProperties(), CommentLookUp[_type.FullName], x => Beautifier.BeautifyType(x.PropertyType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Events", GetEvents(), CommentLookUp[_type.FullName], x => Beautifier.BeautifyType(x.EventHandlerType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Methods", GetMethods(), CommentLookUp[_type.FullName], x => Beautifier.BeautifyType(x.ReturnType), x => x.Name, x => Beautifier.ToMarkdownMethodInfo(x));
-                BuildTable(mb, "Static Fields", GetStaticFields(), CommentLookUp[_type.FullName], x => Beautifier.BeautifyType(x.FieldType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Static Properties", GetStaticProperties(), CommentLookUp[_type.FullName], x => Beautifier.BeautifyType(x.PropertyType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Static Methods", GetStaticMethods(), CommentLookUp[_type.FullName], x => Beautifier.BeautifyType(x.ReturnType), x => x.Name, x => Beautifier.ToMarkdownMethodInfo(x));
-                BuildTable(mb, "Static Events", GetStaticEvents(), CommentLookUp[_type.FullName], x => Beautifier.BeautifyType(x.EventHandlerType), x => x.Name, x => x.Name);
+                BuildTable(mb, "Fields", GetFields(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.FieldType), x => x.Name, x => x.Name);
+                BuildTable(mb, "Properties", GetProperties(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.PropertyType), x => x.Name, x => x.Name);
+                BuildTable(mb, "Events", GetEvents(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.EventHandlerType), x => x.Name, x => x.Name);
+                BuildTable(mb, "Methods", GetMethods(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.ReturnType), x => x.Name, x => CSharpBeautifier.ToMarkdownMethodInfo(x));
+                BuildTable(mb, "Static Fields", GetStaticFields(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.FieldType), x => x.Name, x => x.Name);
+                BuildTable(mb, "Static Properties", GetStaticProperties(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.PropertyType), x => x.Name, x => x.Name);
+                BuildTable(mb, "Static Methods", GetStaticMethods(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.ReturnType), x => x.Name, x => CSharpBeautifier.ToMarkdownMethodInfo(x));
+                BuildTable(mb, "Static Events", GetStaticEvents(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.EventHandlerType), x => x.Name, x => x.Name);
             }
 
             return mb.ToString();
@@ -223,8 +223,8 @@ namespace aistdoc
     }
 
 
-    internal static class MarkdownGenerator {
-        public static MarkdownableType[] Load(string dllPath, string pattern) {
+    internal static class MarkdownCSharpGenerator {
+        public static MarkdownableSharpType[] Load(string dllPath, string pattern) {
             var xmlPath = Path.Combine(Directory.GetParent(dllPath).FullName, Path.GetFileNameWithoutExtension(dllPath) + ".xml");
 
             XmlDocumentComment[] comments = new XmlDocumentComment[0];
@@ -250,7 +250,7 @@ namespace aistdoc
                 .Where(x => x != null)
                 .Where(x => x.IsPublic && !typeof(Delegate).IsAssignableFrom(x) && !x.GetCustomAttributes<ObsoleteAttribute>().Any())
                 .Where(x => IsRequiredNamespace(x, pattern))
-                .Select(x => new MarkdownableType(x, commentsLookup))
+                .Select(x => new MarkdownableSharpType(x, commentsLookup))
                 .ToArray();
 
 

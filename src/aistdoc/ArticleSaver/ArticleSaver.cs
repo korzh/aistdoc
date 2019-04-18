@@ -10,7 +10,7 @@ using Aistant.KbService;
 
 namespace aistdoc {
     internal interface IArticleSaver {
-        bool SaveArticle(string sectionTitle, string sectionUri, string articleUri, string articleTitle, string articleBody, string articleExcerpt);
+        bool SaveArticle(ArticleSaveModel model);
     }
 
     internal class AistantSaver : IArticleSaver {
@@ -20,8 +20,8 @@ namespace aistdoc {
             _service = new AistantKbService(settings, logger);
         }
 
-        public bool SaveArticle(string sectionTitle, string sectionUri, string articleUri, string articleTitle, string articleBody, string articleExcerpt) {
-            return _service.UploadArticleAsync(sectionUri, sectionTitle, articleUri, articleTitle, articleBody, articleExcerpt).Result;
+        public bool SaveArticle(ArticleSaveModel model) {
+            return _service.UploadArticleAsync(model.SectionUri, model.SectionTitle, model.ArticleUri, model.ArticleTitle, model.ArticleBody, model.ArticleExcerpt).Result;
         }
     }
 
@@ -40,27 +40,27 @@ namespace aistdoc {
         }
 
 
-        public bool SaveArticle(string sectionTitle, string sectionUri, string articleUri, string articleTitle, string articleBody, string articleExcerpt) {
+        public bool SaveArticle(ArticleSaveModel model) {
 
             try {
         
-                var articleDirectory = Path.Combine(_outputFolder, MakeFileNameFromTitle(sectionTitle));
+                var articleDirectory = Path.Combine(_outputFolder, MakeFileNameFromTitle(model.SectionTitle));
                 Directory.CreateDirectory(articleDirectory);
 
-                var articleTitleAndExcerpt = "## " + articleTitle + "\n";
-                articleTitleAndExcerpt += articleExcerpt + "\n";
+                var articleTitleAndExcerpt = "## " + model.ArticleTitle + "\n";
+                articleTitleAndExcerpt += model.ArticleExcerpt + "\n";
 
                 //section index file
                 File.AppendAllText(Path.Combine(articleDirectory, ".md"), articleTitleAndExcerpt);
 
                 //article file
-                var filepath = Path.Combine(articleDirectory, MakeFileNameFromTitle(articleTitle)) + ".md";
-                File.WriteAllText(filepath, articleBody);
+                var filepath = Path.Combine(articleDirectory, MakeFileNameFromTitle(model.ArticleBody)) + ".md";
+                File.WriteAllText(filepath, model.ArticleBody);
 
                 _logger.LogInformation("Article was SAVED. Path: " + filepath);
             }
             catch (Exception ex) {
-                _logger.LogError("Article '" + articleTitle + "' WASN'T SAVED");
+                _logger.LogError("Article '" + model.ArticleTitle + "' WASN'T SAVED");
                 return false;
             }
            

@@ -65,12 +65,6 @@ namespace aistdoc
             int articleCount = 0;
             foreach (var g in _types.GroupBy(x => x.Namespace).OrderBy(x => x.Key))
             {
-
-                if (!Directory.Exists(dest))
-                {
-                    Directory.CreateDirectory(dest);
-                }
-
                 string sectionName = g.Key + " namespace";
 
                 foreach (var item in g.OrderBy(x => x.Name).Distinct(new MarkdownableTypeEqualityComparer()))

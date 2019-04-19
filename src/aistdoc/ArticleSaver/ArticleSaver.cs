@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using Aistant.KbService;
 
 namespace aistdoc {
-    internal interface IArticleSaver {
+    public interface IArticleSaver {
         bool SaveArticle(ArticleSaveModel model);
     }
 
@@ -25,7 +25,7 @@ namespace aistdoc {
         }
     }
 
-    internal class FileSaver : IArticleSaver {
+    public class FileSaver : IArticleSaver {
         private readonly string _outputFolder;
         private readonly ILogger _logger;
 

@@ -10,6 +10,11 @@ namespace aistdoc
             return "`" + code + "`";
         }
 
+        public static string MarkdownUrl(string title, string url)
+        {
+            return $"[{title}({url})]";
+        }
+
 
         StringBuilder sb = new StringBuilder();
 

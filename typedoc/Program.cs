@@ -8,9 +8,8 @@ namespace typedoc
     {
         static void Main(string[] args)
         {
-            var parser = new TypeDocJsonParser(new string[] { "test.json"});
-
-            var packages = parser.Parse();
+            var generator = new TypeScriptDocGenerator(new string[] { "test.json" });
+            generator.Generate(new FileSaver("dest", null));
         }
     }
 }

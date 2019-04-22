@@ -17,5 +17,7 @@ namespace aistdoc
         public string ArticleBody { get; set; }
 
         public string ArticleExcerpt { get; set; }
+
+        public bool IsSection { get; set; } = false;
     }
 }

@@ -153,6 +153,14 @@ namespace aistdoc
                 @namespace.Name = nameToken.ToString(); ;
             }
 
+            if (jobject.TryGetValue("flags", out var flagsToken)) {
+                var flagsObj = flagsToken.ToObject<JObject>();
+
+                if (flagsObj.TryGetValue("isExported", out var isExportedToken)) {
+                    @namespace.IsExported = isExportedToken.ToObject<bool>();
+                }
+            }
+
             if (jobject.TryGetValue("children", out var childrenToken)) {
                 var children = childrenToken.ToObject<List<JObject>>();
 
@@ -209,6 +217,10 @@ namespace aistdoc
 
                 if (flagsObj.TryGetValue("isExported", out var isExportedToken)) {
                     variable.IsExported = isExportedToken.ToObject<bool>();
+                }
+
+                if (flagsObj.TryGetValue("isLet", out var isLetToken)) {
+                    variable.IsLet = isLetToken.ToObject<bool>();
                 }
 
                 if (flagsObj.TryGetValue("isConst", out var isConstToken)) {
@@ -386,6 +398,7 @@ namespace aistdoc
                         @class.Methods.Add(method);
                     }
                     else if (childKind == TypeScriptTokenKind.Constructor) {
+                        @class.Constructor = new TypeScriptMethod();
                         LoadFromJObject(@class.Constructor,child);
                     }
                 }
@@ -418,6 +431,11 @@ namespace aistdoc
                     property.IsPublic = isOptionalToken.ToObject<bool>();
                 }
 
+
+                if (flagsObj.TryGetValue("isOptional", out var isStaticToken)) {
+                    property.IsStatic = isStaticToken.ToObject<bool>();
+                }
+
             }
 
             if (jobject.TryGetValue("type", out var typeToken)) {
@@ -428,6 +446,10 @@ namespace aistdoc
                     LoadFromJObject(type, typeObj);
                     property.Type = type;
                 }
+            }
+
+            if (jobject.TryGetValue("defaultValue", out var defValToken)) {
+                property.DefaultValue = defValToken.ToString();
             }
 
             if (jobject.TryGetValue("comment", out var commentToken)) {
@@ -459,17 +481,16 @@ namespace aistdoc
 
                 if (flagsObj.TryGetValue("isOptional", out var isOptionalToken)) {
                     method.IsOptional = isOptionalToken.ToObject<bool>();
+
+                }
+
+                if (flagsObj.TryGetValue("isStatic", out var isStaticToken)) {
+                    method.IsStatic = isStaticToken.ToObject<bool>();
                 }
 
             }
-
             if (jobject.TryGetValue("signatures", out var signatureToken)) {
                 LoadFromJObject(method.Signature, signatureToken.ToObject<List<JObject>>().First());
-            }
-
-            if (jobject.TryGetValue("comment", out var commentToken)) {
-                method.Comment = new TypeScriptComment();
-                LoadFromJObject(method.Comment, commentToken.ToObject<JObject>());
             }
         }
 
@@ -497,6 +518,11 @@ namespace aistdoc
                     LoadFromJObject(type, typeObj);
                     signature.Type = type;
                 }
+            }
+
+            if (jobject.TryGetValue("comment", out var commentToken)) {
+                signature.Comment = new TypeScriptComment();
+                LoadFromJObject(signature.Comment, commentToken.ToObject<JObject>());
             }
         }
 

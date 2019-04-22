@@ -1,0 +1,42 @@
+{
+  "aistant": {
+
+    "authHost": "http://localhost:28186/",
+    "apiHost": "http://localhost:25416/",
+    // The username (email) and the password of your account in Aistant. Required.
+    "username": "antonivanenko@ukr.net",
+    "password": "qwerty",
+
+    // Your team ID (subdomain) in Aistant. Required.
+    "team": "test",
+
+    // Your knowledge base ID. Required.
+    "kb": "easyquery-dotnet",
+
+    // The root section, to which the created articles will be add. Optional.
+    // If it does not exists - aistdoc will create a new one with the specified "uri" and "title"
+    "section": {
+      "uri": "api-reference-5.x",
+      "title": "API reference 5.X"
+    },
+
+    // This options indicates whether we need to create a new version for each uploaded article.
+    // If false - the latest version will be replaced. Optional, default: true.
+    "addVersion": false,
+
+    //mIndicates whether the utility should publish new articles after the upload. Optional, default: true.
+    "publish": true
+  },
+
+  // Your source code settings
+  "source": {
+
+    //Current mode. Required.
+    "mode": "typescript",
+
+    // TypeDoc JSON files. Required.
+    "files": [
+      "test.json"
+    ]
+  }
+}

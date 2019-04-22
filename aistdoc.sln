@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "aistdoc", "src\aistdoc\aist
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KbService", "src\AistantKbService\KbService.csproj", "{1F856F2F-12FA-4F65-A700-22F826C16532}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "typedoc", "typedoc\typedoc.csproj", "{38EB7A29-E7FF-4F3C-824C-2561708C6890}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{1F856F2F-12FA-4F65-A700-22F826C16532}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F856F2F-12FA-4F65-A700-22F826C16532}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F856F2F-12FA-4F65-A700-22F826C16532}.Release|Any CPU.Build.0 = Release|Any CPU
-		{38EB7A29-E7FF-4F3C-824C-2561708C6890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{38EB7A29-E7FF-4F3C-824C-2561708C6890}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{38EB7A29-E7FF-4F3C-824C-2561708C6890}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{38EB7A29-E7FF-4F3C-824C-2561708C6890}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

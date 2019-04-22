@@ -21,7 +21,7 @@ namespace aistdoc {
         }
 
         public bool SaveArticle(ArticleSaveModel model) {
-            return _service.UploadArticleAsync(model.SectionUri, model.SectionTitle, model.ArticleUri, model.ArticleTitle, model.ArticleBody, model.ArticleExcerpt).Result;
+            return _service.UploadArticleAsync(model.SectionUri, model.SectionTitle, model.ArticleUri, model.ArticleTitle, model.ArticleBody, model.ArticleExcerpt, model.IsSection).Result;
         }
     }
 

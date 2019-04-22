@@ -43,7 +43,7 @@ namespace aistdoc
                   .SetBasePath(Directory.GetCurrentDirectory());
 
                 if (string.IsNullOrEmpty(_configFilePath)) {
-                    GenerateDefaultConfig("aistdoc.json");
+                    GenerateDefaultConfig("aistdoc.json", "cs");
                     throw new FileNotFoundException("Config file is required");
                 }
 
@@ -52,7 +52,7 @@ namespace aistdoc
                     builder.AddJsonFile(_configFilePath);
                 }
                 catch (FileNotFoundException ex) {
-                    GenerateDefaultConfig(_configFilePath);
+                    GenerateDefaultConfig(_configFilePath, "cs");
                     throw ex;
                 }
             
@@ -68,8 +68,16 @@ namespace aistdoc
                     saver = new AistantSaver(aistantSettings, logger);
                 }
 
+                var mode = configuration["source:mode"].ToString();
 
-                IDocGenerator generator = new CSharpDocGenerator(configuration, _outputPath);
+                IDocGenerator generator;
+                if (mode == "typescript") {
+                    generator = new TypeScriptDocGenerator(configuration);
+                }
+                else {
+                    generator = new CSharpDocGenerator(configuration, _outputPath);
+                }
+
                 var articleCount = generator.Generate(saver);
 
                 logger.LogInformation("Done! " + $"{articleCount} documents added or updated");
@@ -95,8 +103,10 @@ namespace aistdoc
                     _configFilePath = arg.Substring("--config:".Length);
                 }
                 else if (arg.Contains("--create:")) {
-                    var configName = arg.Substring("--create:".Length);
-                    GenerateDefaultConfig(configName);
+                    var configNameWithMode = arg.Substring("--create:".Length);
+                    var configName = configNameWithMode.Substring(3);
+                    var mode = configNameWithMode.Remove(2);
+                    GenerateDefaultConfig(configName, mode);
                     return false;
                 }
                 else if (arg.Contains("--output:")) {
@@ -118,7 +128,7 @@ namespace aistdoc
             return true;
         }
 
-        static void GenerateDefaultConfig(string configName) {
+        static void GenerateDefaultConfig(string configName, string mode) {
             if (string.IsNullOrEmpty(configName)) {
                 configName = _configFilePath;
             }
@@ -127,7 +137,9 @@ namespace aistdoc
                 configName += ".json";
             }
 
-            string content = ResourceFiles.GetResourceAsString("Resources", "config.json");
+            string templateFile = "config-" + ((mode == "cs") ? "csharp" : (mode == "ts") ? "typescript" : throw new UnknownParameterException("Wrong mode: " + mode)) + ".json";
+
+            string content = ResourceFiles.GetResourceAsString("Resources", templateFile);
             File.WriteAllText(configName, content);
             Console.WriteLine($"Config {configName} successfully created");
 

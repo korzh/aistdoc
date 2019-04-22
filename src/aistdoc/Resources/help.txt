@@ -13,6 +13,6 @@ aistdoc
 							
 	--config:<configfile path> Loads configfile with current path
 
-	--create:<configfile name> Creates configfile template with current name
+	--create:<mode>:<configfile name> Creates configfile template with current name, where <mode> is "cs" (C#) or "ts" (TypeScript)
 
 	--output:<path> Generate documentation to current folder

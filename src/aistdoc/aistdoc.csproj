@@ -5,7 +5,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
-    <RootNamespace>Aistant</RootNamespace>
+    <RootNamespace>aistdoc</RootNamespace>
     <Product>aistdoc</Product>
     <Version>1.0.6</Version>
     <AssemblyVersion>1.0.6.10</AssemblyVersion>
@@ -31,12 +31,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\config.json" />
+    <None Remove="Resources\config-csharp.json" />
+    <None Remove="Resources\config-typescript.json" />
     <None Remove="Resources\help.txt" />
-  </ItemGroup>
+  </ItemGroup>  
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\config.json" />
+    <EmbeddedResource Include="Resources\config-csharp.json" />
+    <EmbeddedResource Include="Resources\config-typescript.json" />
     <EmbeddedResource Include="Resources\help.txt" />
   </ItemGroup>
 
@@ -54,6 +56,9 @@
 
   <ItemGroup>
     <None Update="aistdoc.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="test.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

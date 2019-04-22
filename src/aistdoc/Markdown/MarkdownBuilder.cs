@@ -116,6 +116,11 @@ namespace aistdoc
             sb.AppendLine(text);
         }
 
+        public void AppendSeparateLine()
+        {
+            sb.AppendLine("---");
+        }
+
         public void ListLink(string text, string url) // nest zero
         {
             sb.Append("- ");

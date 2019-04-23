@@ -88,7 +88,7 @@ namespace aistdoc
                         foreach (var child in children) {
                             var childKind = child["kind"].ToObject<TypeScriptTokenKind>();
                             if (childKind == TypeScriptTokenKind.Class) {
-                                var @class = new TypeScriptClass();
+                                var @class = new TypeScriptClass(package);
                                 LoadFromJObject(@class, child);
                                 if (!isExported)
                                 {
@@ -97,7 +97,7 @@ namespace aistdoc
                                 package.Classes.Add(@class);
                             }
                             else if (childKind == TypeScriptTokenKind.Interface) {
-                                var @interface = new TypeScriptInterface();
+                                var @interface = new TypeScriptInterface(package);
                                 LoadFromJObject(@interface, child);
                                 if (!isExported) {
                                     @interface.IsExported = false;
@@ -105,7 +105,7 @@ namespace aistdoc
                                 package.Interfaces.Add(@interface);
                             }
                             else if (childKind == TypeScriptTokenKind.Function) {
-                                var function = new TypeScriptFunction();
+                                var function = new TypeScriptFunction(package);
                                 LoadFromJObject(function, child);
                                 if (!isExported) {
                                     function.IsExported = false;
@@ -113,7 +113,7 @@ namespace aistdoc
                                 package.Functions.Add(function);
                             }
                             else if (childKind == TypeScriptTokenKind.Namespace) {
-                                var @namespace = new TypeScriptNamespace();
+                                var @namespace = new TypeScriptNamespace(package);
                                 LoadFromJObject(@namespace, child);
                                 if (!isExported) {
                                     @namespace.IsExported = false;
@@ -121,7 +121,7 @@ namespace aistdoc
                                 package.Namespaces.Add(@namespace);
                             }
                             else if (childKind == TypeScriptTokenKind.Enumeration) {
-                                var @enum = new TypeScriptEnumeration();
+                                var @enum = new TypeScriptEnumeration(package);
                                 LoadFromJObject(@enum, child);
                                 if (!isExported) {
                                     @enum.IsExported = false;
@@ -129,7 +129,7 @@ namespace aistdoc
                                 package.Enumerations.Add(@enum);
                             }
                             else if (childKind == TypeScriptTokenKind.Varialbe) {
-                                var @var = new TypeScriptVariable();
+                                var @var = new TypeScriptVariable(package);
                                 LoadFromJObject(var, child);
                                 if (!isExported) {
                                     @var.IsExported = false;
@@ -167,32 +167,32 @@ namespace aistdoc
                 foreach (var child in children) {
                     var childKind = child["kind"].ToObject<TypeScriptTokenKind>();
                     if (childKind == TypeScriptTokenKind.Class) {
-                        var @class = new TypeScriptClass();
+                        var @class = new TypeScriptClass(@namespace);
                         LoadFromJObject(@class, child);
                         @namespace.Classes.Add(@class);
                     }
                     else if (childKind == TypeScriptTokenKind.Interface) {
-                        var @interface = new TypeScriptInterface();
+                        var @interface = new TypeScriptInterface(@namespace);
                         LoadFromJObject(@interface, child);
                         @namespace.Interfaces.Add(@interface);
                     }
                     else if (childKind == TypeScriptTokenKind.Function) {
-                        var function = new TypeScriptFunction();
+                        var function = new TypeScriptFunction(@namespace);
                         LoadFromJObject(function, child);
                         @namespace.Functions.Add(function);
                     }
                     else if (childKind == TypeScriptTokenKind.Namespace) {
-                        var nspace= new TypeScriptNamespace();
+                        var nspace= new TypeScriptNamespace(@namespace);
                         LoadFromJObject(nspace, child);
                         @namespace.Namespaces.Add(nspace);
                     }
                     else if (childKind == TypeScriptTokenKind.Enumeration) {
-                        var @enum = new TypeScriptEnumeration();
+                        var @enum = new TypeScriptEnumeration(@namespace);
                         LoadFromJObject(@enum, child);
                         @namespace.Enumerations.Add(@enum);
                     }
                     else if (childKind == TypeScriptTokenKind.Varialbe) {
-                        var @var = new TypeScriptVariable();
+                        var @var = new TypeScriptVariable(@namespace);
                         LoadFromJObject(var, child);
                         @namespace.Variables.Add(@var);
                     }
@@ -229,13 +229,7 @@ namespace aistdoc
             }
 
             if (jobject.TryGetValue("type", out var typeToken)) {
-                var typeObj = typeToken.ToObject<JObject>();
-
-                if (typeObj.TryGetValue("type", out var typeDefToken)) {
-                    var type = TypeScriptType.CreateTypeSctiptType(typeDefToken.ToString());
-                    LoadFromJObject(type, typeObj);
-                    variable.Type = type;
-                }
+                variable.Type = LoadTypeFromJObject(typeToken.ToObject<JObject>());
             }
 
             if (jobject.TryGetValue("defaultValue", out var defValToken)) {
@@ -326,6 +320,11 @@ namespace aistdoc
 
         private void LoadFromJObject(TypeScriptInterface @interface, JObject jobject)
         {
+
+            if (jobject.TryGetValue("id", out var idTokent)) {
+                @interface.Id = idTokent.ToObject<int>();
+            }
+
             if (jobject.TryGetValue("name", out var nameTokent)) {
                 @interface.Name = nameTokent.ToString();
             }
@@ -360,6 +359,14 @@ namespace aistdoc
             if (jobject.TryGetValue("comment", out var commentToken)) {
                 @interface.Comment = new TypeScriptComment();
                 LoadFromJObject(@interface.Comment, commentToken.ToObject<JObject>());
+            }
+
+            if (jobject.TryGetValue("implementedTypes", out var impTypesToken)) {
+                var typeObjs = impTypesToken.ToObject<List<JObject>>();
+                foreach (var typeObj in typeObjs) {
+                    @interface.ImplementedTypes.Add(LoadTypeFromJObject(typeObj));
+                }
+
             }
         }
 
@@ -408,6 +415,22 @@ namespace aistdoc
                 @class.Comment = new TypeScriptComment();
                 LoadFromJObject(@class.Comment, commentToken.ToObject<JObject>());
             }
+
+            if (jobject.TryGetValue("implementedTypes", out var impTypesToken)) {
+                var typeObjs = impTypesToken.ToObject<List<JObject>>();
+                foreach (var typeObj in typeObjs) {
+                    @class.ImplementedTypes.Add(LoadTypeFromJObject(typeObj));
+                }
+
+            }
+
+            if (jobject.TryGetValue("extendedTypes", out var exToken)) {
+                var typeObjs = exToken.ToObject<List<JObject>>();
+                foreach (var typeObj in typeObjs) {
+                    @class.ExtendedTypes.Add(LoadTypeFromJObject(typeObj));
+                }
+
+            }
         }
 
         private void LoadFromJObject(TypeScriptProperty property, JObject jobject)
@@ -424,27 +447,23 @@ namespace aistdoc
                 }
 
                 if (flagsObj.TryGetValue("isProtected", out var isProtectedToken)) {
-                    property.IsPublic = isProtectedToken.ToObject<bool>();
+                    property.IsProtected = isProtectedToken.ToObject<bool>();
                 }
 
                 if (flagsObj.TryGetValue("isOptional", out var isOptionalToken)) {
-                    property.IsPublic = isOptionalToken.ToObject<bool>();
+                    property.IsOptional = isOptionalToken.ToObject<bool>();
                 }
 
-
-                if (flagsObj.TryGetValue("isOptional", out var isStaticToken)) {
+                if (flagsObj.TryGetValue("isStatic", out var isStaticToken)) {
                     property.IsStatic = isStaticToken.ToObject<bool>();
                 }
 
-            }
+                if (flagsObj.TryGetValue("isPrivate", out var isPrivateToken)) {
+                    property.IsPrivate = isPrivateToken.ToObject<bool>();
+                }
 
-            if (jobject.TryGetValue("type", out var typeToken)) {
-                var typeObj = typeToken.ToObject<JObject>();
-
-                if (typeObj.TryGetValue("type", out var typeDefToken)) {
-                    var type = TypeScriptType.CreateTypeSctiptType(typeDefToken.ToString());
-                    LoadFromJObject(type, typeObj);
-                    property.Type = type;
+                if (jobject.TryGetValue("type", out var typeToken)) {
+                    property.Type = LoadTypeFromJObject(typeToken.ToObject<JObject>());
                 }
             }
 
@@ -511,13 +530,7 @@ namespace aistdoc
             }
 
             if (jobject.TryGetValue("type", out var typeToken)) {
-                var typeObj = typeToken.ToObject<JObject>();
-
-                if (typeObj.TryGetValue("type", out var typeDefToken)) {
-                    var type = TypeScriptType.CreateTypeSctiptType(typeDefToken.ToString());
-                    LoadFromJObject(type, typeObj);
-                    signature.Type = type;
-                }
+                signature.Type = LoadTypeFromJObject(typeToken.ToObject<JObject>());
             }
 
             if (jobject.TryGetValue("comment", out var commentToken)) {
@@ -541,19 +554,12 @@ namespace aistdoc
             }
 
             if (jobject.TryGetValue("type", out var typeToken)) {
-                var typeObj = typeToken.ToObject<JObject>();
-
-                if (typeObj.TryGetValue("type", out var typeDefToken)) {
-                    var type = TypeScriptType.CreateTypeSctiptType(typeDefToken.ToString());
-                    LoadFromJObject(type, typeObj);
-                    parameter.Type = type;
-                }
+                parameter.Type = LoadTypeFromJObject(typeToken.ToObject<JObject>());
             }
 
             if (jobject.TryGetValue("defaultValue", out var defValToken)) {
                 parameter.DefaultValue = defValToken.ToString();
             }
-
 
             if (jobject.TryGetValue("comment", out var commentToken)) {
                 parameter.Comment = new TypeScriptComment();
@@ -565,24 +571,18 @@ namespace aistdoc
         {
             try {
                 var signatureObj = jobject["declaration"]["signatures"].ToObject<List<JObject>>().First();
+                type.Signature = new TypeScriptSignature();
                 LoadFromJObject(type.Signature, signatureObj);
             }
             catch {
-                throw new TypeDocPatserException("Wrong reflection type declaration: " + jobject.Path);
+              
             }
         }
 
         private void LoadFromJObject(TypeScriptArrayType type, JObject jobject)
         {
-
             if (jobject.TryGetValue("elementType", out var elementTypeToken)) {
-                var elementTypeJobj = elementTypeToken as JObject;
-
-                if (elementTypeJobj.TryGetValue("type", out var typeToken)) {
-                    var elemType = TypeScriptType.CreateTypeSctiptType(typeToken.ToString());
-                    LoadFromJObject(elemType, elementTypeJobj);
-                    type.ElementType = elemType;
-                }
+                type.ElementType = LoadTypeFromJObject(elementTypeToken.ToObject<JObject>());
             }
         }
 
@@ -596,11 +596,7 @@ namespace aistdoc
             if (jobject.TryGetValue("typeArguments", out var typeArgumentsToken)) {
                 var typeArgumentObjs = typeArgumentsToken.ToObject<List<JObject>>();
                 foreach (var typeArgObj in typeArgumentObjs) {
-                    if (typeArgObj.TryGetValue("type", out var typeToken)) {
-                        var typeArg = TypeScriptType.CreateTypeSctiptType(typeToken.ToString());
-                        LoadFromJObject(typeArg, typeArgObj);
-                        type.TypeArguments.Add(typeArg);
-                    }
+                    type.TypeArguments.Add(LoadTypeFromJObject(typeArgObj));
                 }
             }
         }
@@ -613,23 +609,23 @@ namespace aistdoc
                 var typeObjs = typesToken.ToObject<List<JObject>>();
 
                 foreach (var typeObj in typeObjs) {
-                    if (typeObj.TryGetValue("type", out var typeToken)) {
-                        var typeArg = TypeScriptType.CreateTypeSctiptType(typeToken.ToString());
-                        LoadFromJObject(typeArg, typeObj);
-                        type.Types.Add(typeArg);
-                    }
+                    type.Types.Add(LoadTypeFromJObject(typeObj));
                 }
             }
         }
 
-        private void LoadFromJObject(TypeScriptType type, JObject jobject)
+        private TypeScriptType LoadTypeFromJObject(JObject jobject)
         {
-            if (jobject.TryGetValue("name", out var nameToken)) {
-                type.Name = nameToken.ToObject<string>();
+
+            var typeStr = "";
+            if (jobject.TryGetValue("type", out var typeToken)) {
+                typeStr = typeToken.ToObject<string>();
             }
 
-            if (jobject.TryGetValue("type", out var typeToken)) {
-                type.Type = typeToken.ToObject<string>();
+            var type = TypeScriptType.CreateTypeSctiptType(typeStr);
+
+            if (jobject.TryGetValue("name", out var nameToken)) {
+                type.Name = nameToken.ToObject<string>();
             }
 
             if (type is TypeScriptReflectionType) {
@@ -644,6 +640,8 @@ namespace aistdoc
             else if (type is TypeScriptReferenceType) {
                 LoadFromJObject((TypeScriptReferenceType)type, jobject);
             }
+
+            return type;
            
         }
 
@@ -659,6 +657,13 @@ namespace aistdoc
 
             if (jobject.TryGetValue("returns", out var returnsToken)) {
                 comment.Returns = returnsToken.ToString();
+            }
+
+            if (jobject.TryGetValue("tags", out var tagsToken)) {
+                var tagsObj = tagsToken.ToObject<List<JObject>>();
+                foreach (var tag in tagsObj) {
+                    comment.Tags.Add(tag["tag"].ToString(), tag["text"].ToString());
+                }
             }
         }
     }

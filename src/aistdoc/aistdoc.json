@@ -36,7 +36,9 @@
 
     // TypeDoc JSON files. Required.
     "files": [
-      "test.json"
+      "core.json",
+      "broker.json",
+      "ui.json"
     ]
   }
 }

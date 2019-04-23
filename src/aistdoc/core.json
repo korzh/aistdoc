@@ -16920,7 +16920,13 @@
 						"isExported": true
 					},
 					"comment": {
-						"shortText": "Represents an internal query structure"
+						"shortText": "Represents an internal query structure",
+						"tags": [
+							{
+								"tag": "example",
+								"text": "\nvar query = new Query();\nquery.loadFromJson(json);\n"
+							}
+						]
 					},
 					"children": [
 						{
@@ -16992,7 +16998,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 50,
+									"line": 53,
 									"character": 41
 								}
 							]
@@ -17009,7 +17015,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 46,
+									"line": 49,
 									"character": 24
 								}
 							],
@@ -17031,7 +17037,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 48,
+									"line": 51,
 									"character": 35
 								}
 							],
@@ -17052,7 +17058,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 39,
+									"line": 42,
 									"character": 19
 								}
 							],
@@ -17077,7 +17083,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 37,
+									"line": 40,
 									"character": 23
 								}
 							],
@@ -17098,7 +17104,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 44,
+									"line": 47,
 									"character": 24
 								}
 							],
@@ -17120,7 +17126,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 33,
+									"line": 36,
 									"character": 14
 								}
 							],
@@ -17141,7 +17147,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 40,
+									"line": 43,
 									"character": 22
 								}
 							],
@@ -17165,7 +17171,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 42,
+									"line": 45,
 									"character": 16
 								}
 							],
@@ -17187,7 +17193,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 34,
+									"line": 37,
 									"character": 19
 								}
 							],
@@ -17208,7 +17214,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 35,
+									"line": 38,
 									"character": 21
 								}
 							],
@@ -17229,7 +17235,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 36,
+									"line": 39,
 									"character": 16
 								}
 							],
@@ -17250,7 +17256,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 38,
+									"line": 41,
 									"character": 16
 								}
 							],
@@ -17272,7 +17278,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 50,
+									"line": 53,
 									"character": 35
 								}
 							],
@@ -17342,7 +17348,7 @@
 													"sources": [
 														{
 															"fileName": "src/query/query.ts",
-															"line": 692,
+															"line": 694,
 															"character": 39
 														}
 													]
@@ -17359,7 +17365,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 692,
+									"line": 694,
 									"character": 29
 								}
 							]
@@ -17450,7 +17456,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 391,
+									"line": 393,
 									"character": 20
 								}
 							]
@@ -17494,7 +17500,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 468,
+									"line": 470,
 									"character": 23
 								}
 							]
@@ -17560,7 +17566,7 @@
 													"sources": [
 														{
 															"fileName": "src/query/query.ts",
-															"line": 684,
+															"line": 686,
 															"character": 39
 														}
 													]
@@ -17577,7 +17583,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 684,
+									"line": 686,
 									"character": 29
 								}
 							]
@@ -17621,7 +17627,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 488,
+									"line": 490,
 									"character": 29
 								}
 							]
@@ -17651,7 +17657,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 212,
+									"line": 214,
 									"character": 22
 								}
 							]
@@ -17695,7 +17701,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 230,
+									"line": 232,
 									"character": 16
 								}
 							]
@@ -17725,7 +17731,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 251,
+									"line": 253,
 									"character": 23
 								}
 							]
@@ -17755,7 +17761,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 267,
+									"line": 269,
 									"character": 26
 								}
 							]
@@ -17838,7 +17844,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 577,
+									"line": 579,
 									"character": 39
 								}
 							]
@@ -17917,7 +17923,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 521,
+									"line": 523,
 									"character": 27
 								}
 							]
@@ -17961,7 +17967,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 216,
+									"line": 218,
 									"character": 20
 								}
 							]
@@ -18016,7 +18022,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 641,
+									"line": 643,
 									"character": 27
 								}
 							]
@@ -18059,7 +18065,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 637,
+									"line": 639,
 									"character": 27
 								}
 							]
@@ -18103,7 +18109,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 368,
+									"line": 370,
 									"character": 29
 								}
 							]
@@ -18137,7 +18143,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 346,
+									"line": 348,
 									"character": 21
 								}
 							]
@@ -18167,7 +18173,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 700,
+									"line": 702,
 									"character": 28
 								}
 							]
@@ -18197,7 +18203,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 325,
+									"line": 327,
 									"character": 25
 								}
 							]
@@ -18227,7 +18233,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 283,
+									"line": 285,
 									"character": 16
 								}
 							]
@@ -18262,7 +18268,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 137,
+									"line": 140,
 									"character": 19
 								}
 							]
@@ -18292,7 +18298,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 304,
+									"line": 306,
 									"character": 18
 								}
 							]
@@ -18335,7 +18341,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 663,
+									"line": 665,
 									"character": 29
 								}
 							]
@@ -18366,7 +18372,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 680,
+									"line": 682,
 									"character": 27
 								}
 							]
@@ -18400,7 +18406,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 350,
+									"line": 352,
 									"character": 27
 								}
 							]
@@ -18430,7 +18436,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 208,
+									"line": 210,
 									"character": 25
 								}
 							]
@@ -18460,7 +18466,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 199,
+									"line": 201,
 									"character": 28
 								}
 							]
@@ -18504,7 +18510,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 113,
+									"line": 116,
 									"character": 24
 								}
 							]
@@ -18547,7 +18553,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 108,
+									"line": 111,
 									"character": 23
 								}
 							]
@@ -18569,7 +18575,7 @@
 									"kindString": "Call signature",
 									"flags": {},
 									"comment": {
-										"shortText": "Loads DataModel object associated with this query\nfrom [[DataModelData]] or [[string]]"
+										"shortText": "Loads DataModel object associated with this query"
 									},
 									"parameters": [
 										{
@@ -18579,7 +18585,7 @@
 											"kindString": "Parameter",
 											"flags": {},
 											"comment": {
-												"text": "a DataModelData object or string\n"
+												"text": "a DataModelData object or a string\n"
 											},
 											"type": {
 												"type": "union",
@@ -18606,7 +18612,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 154,
+									"line": 156,
 									"character": 24
 								}
 							]
@@ -18671,7 +18677,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 430,
+									"line": 432,
 									"character": 21
 								}
 							]
@@ -18714,7 +18720,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 696,
+									"line": 698,
 									"character": 32
 								}
 							]
@@ -18769,7 +18775,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 451,
+									"line": 453,
 									"character": 23
 								}
 							]
@@ -18827,7 +18833,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 617,
+									"line": 619,
 									"character": 24
 								}
 							]
@@ -18870,7 +18876,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 688,
+									"line": 690,
 									"character": 32
 								}
 							]
@@ -18936,7 +18942,7 @@
 													"sources": [
 														{
 															"fileName": "src/query/query.ts",
-															"line": 645,
+															"line": 647,
 															"character": 49
 														}
 													]
@@ -18953,7 +18959,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 645,
+									"line": 647,
 									"character": 31
 								}
 							]
@@ -19018,7 +19024,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 81,
+									"line": 84,
 									"character": 18
 								}
 							]
@@ -19061,7 +19067,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 337,
+									"line": 339,
 									"character": 25
 								}
 							]
@@ -19104,7 +19110,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 295,
+									"line": 297,
 									"character": 16
 								}
 							]
@@ -19154,7 +19160,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 145,
+									"line": 148,
 									"character": 19
 								}
 							]
@@ -19197,7 +19203,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 316,
+									"line": 318,
 									"character": 18
 								}
 							]
@@ -19231,7 +19237,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 162,
+									"line": 164,
 									"character": 17
 								}
 							]
@@ -19266,7 +19272,7 @@
 							"sources": [
 								{
 									"fileName": "src/query/query.ts",
-									"line": 170,
+									"line": 172,
 									"character": 21
 								}
 							]
@@ -19351,7 +19357,7 @@
 					"sources": [
 						{
 							"fileName": "src/query/query.ts",
-							"line": 31,
+							"line": 34,
 							"character": 18
 						}
 					]
@@ -20651,12 +20657,12 @@
 								"isExported": true
 							},
 							"comment": {
-								"shortText": "All conditions must be truth, in result SQL they are connected by AND operator;"
+								"shortText": "All conditions must be truth, in result SQL they are connected by `AND` operator."
 							},
 							"sources": [
 								{
 									"fileName": "src/types/link_type.ts",
-									"line": 19,
+									"line": 14,
 									"character": 7
 								}
 							],
@@ -20676,7 +20682,7 @@
 							"sources": [
 								{
 									"fileName": "src/types/link_type.ts",
-									"line": 10,
+									"line": 8,
 									"character": 7
 								}
 							],
@@ -20691,18 +20697,12 @@
 								"isExported": true
 							},
 							"comment": {
-								"shortText": "None of the conditions must be truth (all must be false).",
-								"tags": [
-									{
-										"tag": "example",
-										"text": "\nIn SQL it will look like: NOT (Condition1 OR Condition2 OR ...).\n"
-									}
-								]
+								"shortText": "None of the conditions must be truth (all must be false). In SQL it will look like: `NOT (Condition1 OR Condition2 OR ...)`."
 							},
 							"sources": [
 								{
 									"fileName": "src/types/link_type.ts",
-									"line": 8,
+									"line": 6,
 									"character": 8
 								}
 							],
@@ -20717,18 +20717,12 @@
 								"isExported": true
 							},
 							"comment": {
-								"shortText": "Not all conditions must be truth (at least one must false).\nIn SQL it will look like:",
-								"tags": [
-									{
-										"tag": "example",
-										"text": "\nNOT(Condition1 AND Condition2 AND ...).\n"
-									}
-								]
+								"shortText": "Not all conditions must be truth (at least one must false). In SQL it will look like: `NOT(Condition1 AND Condition2 AND ...)`."
 							},
 							"sources": [
 								{
 									"fileName": "src/types/link_type.ts",
-									"line": 17,
+									"line": 12,
 									"character": 10
 								}
 							],
@@ -21294,7 +21288,13 @@
 							"kindString": "Call signature",
 							"flags": {},
 							"comment": {
-								"shortText": "Custom implementetion of AJAX to make requests"
+								"shortText": "Custom implementetion of AJAX to make requests",
+								"tags": [
+									{
+										"tag": "example",
+										"text": "\nvar data = JSON.stringify(value);\najax({\n     type: 'POST',\n     data: data\n});\n"
+									}
+								]
 							},
 							"parameters": [
 								{
@@ -21304,7 +21304,7 @@
 									"kindString": "Parameter",
 									"flags": {},
 									"comment": {
-										"text": "[[AjaxOptions]]\n"
+										"text": "options for ajax"
 									},
 									"type": {
 										"type": "reference",
@@ -21322,7 +21322,7 @@
 					"sources": [
 						{
 							"fileName": "src/utils/ajax.ts",
-							"line": 17,
+							"line": 23,
 							"character": 20
 						}
 					]

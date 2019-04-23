@@ -227,6 +227,10 @@ namespace Aistant.KbService {
                     article.IndexNum = GetMaxIndexNumForDoc(_nullSectionUri) + 1024;
                     _indexNumMetaInfo[_nullSectionUri].Add(article.Uri, article.IndexNum);
                 }
+
+                if (isSection) {
+                    _indexNumMetaInfo[article.Uri] = new Dictionary<string, int>();
+                }
                
                 article.FormatType = FormatType.Markdown;
 
@@ -339,7 +343,12 @@ namespace Aistant.KbService {
                 article.IndexNum = GetMaxIndexNumForDoc(currentSection.Uri) + 1024;
 
                 _indexNumMetaInfo[currentSection.Uri].Add(article.Uri, article.IndexNum);
-                
+
+                if (isSection) {
+                    _indexNumMetaInfo[article.Uri] = new Dictionary<string, int>();
+                }
+
+
                 article.FormatType = FormatType.Markdown;
 
                 article = (isSection) ? await CreateSectionAsync(article) : await CreateArticleAsync(article);

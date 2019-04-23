@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace aistdoc
 {
@@ -21,6 +22,8 @@ namespace aistdoc
         List<TypeScriptEnumeration> Enumerations { get; }
         List<TypeScriptFunction> Functions { get; }
         List<TypeScriptVariable> Variables { get; }
+
+        string GetPath();
     }
 
     public interface ITypeScriptContract
@@ -29,15 +32,24 @@ namespace aistdoc
         List<TypeScriptMethod> Methods { get; set; }
     }
 
+    public interface ITypeScriptImplemented
+    {
+        List<TypeScriptType> ImplementedTypes { get; }
+    }
+
+    public interface ITypeScriptExtended
+    {
+        List<TypeScriptType> ExtendedTypes { get; }
+    }
+
     public interface ITypeScriptLibrary
     {
         /// <summary>
-        /// Finds TypeScriptTypeByItsId and Name
+        /// Finds TypeScriptType by its name
         /// </summary>
-        /// <param name="id"></param>
         /// <param name="name"></param>
         /// <returns>The path to the type.</returns>
-        string FindPathToType(int id, string name);
+        string FindPathToType(string name);
     }
 
     public interface ITypeScriptFormatter
@@ -108,9 +120,10 @@ namespace aistdoc
 
         public override string Format(ITypeScriptLibrary lib, FormatMode mode = FormatMode.Markdown)
         {
-            var name = Name;
+            var path = lib.FindPathToType(Name);
+            var name = path != null ? MarkdownBuilder.MarkdownUrl(Name, path) : MarkdownBuilder.MarkdownCodeQuote(Name);
             if (TypeArguments.Any()){
-                name += "<" + string.Join(",", TypeArguments.Select(t => t.Format(lib, mode))) + ">";
+                name += "&lt;" + string.Join(",", TypeArguments.Select(t => t.Format(lib, mode))) + "&gt;";
             }
 
             return name;
@@ -123,31 +136,49 @@ namespace aistdoc
 
         public override string Format(ITypeScriptLibrary lib, FormatMode mode = FormatMode.Markdown)
         {
-            return string.Join("|", Types.Select(t => t.Format(lib, mode)));
+            return string.Join(" | ", Types.Select(t => t.Format(lib, mode)));
         }
     }
 
     public class TypeScriptReflectionType : TypeScriptType
     {
-        public TypeScriptSignature Signature { get; set; } = new TypeScriptSignature();
+        public TypeScriptSignature Signature { get; set; }
 
         public override string Format(ITypeScriptLibrary lib, FormatMode mode = FormatMode.Markdown)
         {
-            return $"({string.Join(",", Signature.Parameters.Select(p => p.Format(lib, mode)))}) => {Signature.Type.Format(lib, mode)}";
+            if (Signature != null) {
+                return $"({string.Join(", ", Signature.Parameters.Select(p => p.Format(lib, mode)))}) => {Signature.Type.Format(lib, mode)}";
+            }
+
+            return MarkdownBuilder.MarkdownCodeQuote("any");
         }
 
     }
     #endregion
 
-    public class TypeScriptInterface: ITypeScriptContract
+    public class TypeScriptInterface : ITypeScriptContract, ITypeScriptImplemented
     {
+        public int Id { get; set; }
         public string Name { get; set; }
 
         public string BeautifulName => Name + " interface";
+
+        public ITypeScriptModule Module { get; private set; }
         public TypeScriptComment Comment { get; set; }
         public bool IsExported { get; set; }
         public List<TypeScriptProperty> Properties { get; set; } = new List<TypeScriptProperty>();
         public List<TypeScriptMethod> Methods { get; set; } = new List<TypeScriptMethod>();
+        public List<TypeScriptType> ImplementedTypes { get; set; } = new List<TypeScriptType>();
+
+        public TypeScriptInterface(ITypeScriptModule module)
+        {
+            Module = module;
+        }
+
+        public string GetPath()
+        {
+            return $"{Module.GetPath()}/Interfaces/{BeautifulName}";
+        }
     }
 
     public class TypeScriptProperty: ITypeScriptFormatter
@@ -156,7 +187,7 @@ namespace aistdoc
         public TypeScriptComment Comment { get; set; }
         public bool IsPublic { get; set; }
         public bool IsProtected { get; set; }
-        public bool IsPrivate { get => !(IsProtected || IsPublic); }
+        public bool IsPrivate { get; set; }
         public bool IsOptional { get; set; }
         public bool IsStatic { get; set; }
         public TypeScriptType Type { get; set; }
@@ -164,7 +195,7 @@ namespace aistdoc
 
         public string Format(ITypeScriptLibrary lib, FormatMode mode = FormatMode.Markdown)
         {
-            return $"● {Name}{(IsOptional ? "?" : "")}:{Type.Format(lib)}{((DefaultValue != null) ? " = " + MarkdownBuilder.MarkdownCodeQuote(DefaultValue) : "")}";
+            return $"● {Name}{(IsOptional ? "?" : "")}: {Type.Format(lib)}{((DefaultValue != null) ? " = " + MarkdownBuilder.MarkdownCodeQuote(DefaultValue) : "")}";
         }
 
     }
@@ -185,11 +216,12 @@ namespace aistdoc
 
     }
 
-    public class TypeScriptClass: ITypeScriptContract
+    public class TypeScriptClass: ITypeScriptContract, ITypeScriptExtended, ITypeScriptImplemented
     {
         public int Id { get; set; }
         public string Name { get; set; }
 
+        public ITypeScriptModule Module { get; private set; }
         public string BeautifulName => Name + " class";
         public TypeScriptComment Comment { get; set; }
         public bool IsExported { get; set; }
@@ -197,7 +229,19 @@ namespace aistdoc
         public TypeScriptMethod Constructor { get; set; }
         public List<TypeScriptProperty> Properties { get; set; } = new List<TypeScriptProperty>();
         public List<TypeScriptMethod> Methods { get; set; } = new List<TypeScriptMethod>();
-       
+        public List<TypeScriptType> ImplementedTypes { get; set; } = new List<TypeScriptType>();
+        public List<TypeScriptType> ExtendedTypes { get; set; } = new List<TypeScriptType>();
+
+        public TypeScriptClass(ITypeScriptModule module)
+        {
+            Module = module;
+        }
+
+        public string GetPath()
+        {
+            return $"{Module.GetPath()}/Classes/{BeautifulName}";
+        }
+
     }
 
     public class TypeScriptParameter: ITypeScriptFormatter
@@ -221,10 +265,7 @@ namespace aistdoc
 
             result += Name;
 
-            if (DefaultValue != null) {
-                result += " = " + MarkdownBuilder.MarkdownCodeQuote(DefaultValue); 
-            }
-            else if (IsOptional) {
+            if (IsOptional || DefaultValue != null) {
                 result += "?";
             }
           
@@ -258,6 +299,8 @@ namespace aistdoc
     {
         public string Name { get; set; }
         public string BeutifulName => Name + " function";
+
+        public ITypeScriptModule Module { get; private set; }
         public TypeScriptComment Comment { get; set; }
         public bool IsExported { get; set; }
         public TypeScriptSignature Signature { get; set; } = new TypeScriptSignature();
@@ -266,7 +309,17 @@ namespace aistdoc
         {
             return "▸ " + Signature.Format(lib);
         }
-     
+
+        public TypeScriptFunction(ITypeScriptModule module)
+        {
+            Module = module;
+        }
+
+        public string GetPath()
+        {
+            return $"{Module.GetPath()}/Functions";
+        }
+
     }
 
     public class TypeScriptEnumeration
@@ -274,16 +327,27 @@ namespace aistdoc
         public int Id { get; set; }
         public string Name { get; set; }
         public string BeautifulName => Name + " enum";
+
+        public ITypeScriptModule Module { get; set; }
         public TypeScriptComment Comment { get; set; }
         public bool IsExported { get; set; }
 
         public List<TypeScriptEnumerationMember> Members = new List<TypeScriptEnumerationMember>();
+
+        public TypeScriptEnumeration(ITypeScriptModule module)
+        {
+            Module = module;
+        }
+
+        public string GetPath()
+        {
+            return $"{Module.GetPath()}/Enumerations/{BeautifulName}";
+        }
     }
 
     public class TypeScriptEnumerationMember
     {
         public string Name { get; set; }
-
         public TypeScriptComment Comment { get; set; }
         public string DefaultValue { get; set; }
     }
@@ -292,6 +356,8 @@ namespace aistdoc
     {
         public string Name { get; set; }
         public string BeutifulName => Name + " variable";
+
+        public ITypeScriptModule Module { get; private set; }
         public TypeScriptComment Comment { get; set; }
         public bool IsExported { get; set; }
         public bool IsConst { get; set; }
@@ -299,9 +365,19 @@ namespace aistdoc
         public TypeScriptType Type { get; set; }
         public string DefaultValue { get; set; }
 
+        public TypeScriptVariable(ITypeScriptModule module)
+        {
+            Module = module;
+        }
+
         public string Format(ITypeScriptLibrary lib, FormatMode mode = FormatMode.Markdown)
         {
             return $"● {Name}:{Type.Format(lib)}{((DefaultValue != null) ? " = " + MarkdownBuilder.MarkdownCodeQuote(DefaultValue) : "")}";
+        }
+
+        public string GetPath()
+        {
+            return $"{Module.GetPath()}/Variables";
         }
     }
 
@@ -310,6 +386,8 @@ namespace aistdoc
         public string Name { get; set; }
         public string BeautifulName => Name + " namespace";
 
+        public ITypeScriptModule Module { get; set; }
+
         public TypeScriptComment Comment { get; set; }
         public bool IsExported { get; set; }
 
@@ -320,18 +398,52 @@ namespace aistdoc
         public List<TypeScriptNamespace> Namespaces { get; } = new List<TypeScriptNamespace>();
         public List<TypeScriptVariable> Variables { get; } = new List<TypeScriptVariable>();
 
+        public TypeScriptNamespace(ITypeScriptModule module)
+        {
+            Module = module;
+        }
+
+        public string GetPath()
+        {
+            return $"{Module.GetPath()}/{BeautifulName}";
+        }
+
+        public string FindPathToType(string name)
+        {
+            var classType = Classes.Where(c => c.IsExported).FirstOrDefault(cl => cl.Name == name);
+            if (classType != null) {
+                return classType.GetPath();
+            }
+
+            var interfaceType = Interfaces.Where(i => i.IsExported).FirstOrDefault(cl => cl.Name == name);
+            if (interfaceType != null) {
+                return interfaceType.GetPath();
+            }
+
+            var enumType = Enumerations.Where(e => e.IsExported).FirstOrDefault(cl => cl.Name == name);
+            if (enumType != null) {
+                return enumType.GetPath();
+            }
+
+            foreach (var nspace in Namespaces.Where(n => n.IsExported)) {
+                var path = nspace.FindPathToType(name);
+                if (path != null) {
+                    return path;
+                }
+            }
+
+            return null;
+
+        }
+
     }
 
     public class TypeScriptPackage: ITypeScriptModule
     {
         public string Name { get; set; }
-
         public string BeautifulName => Name + " package";
-
         public TypeScriptComment Comment { get; set; }
-
         public bool IsExported { get; } = true;
-
         public List<TypeScriptClass> Classes { get; } = new List<TypeScriptClass>();
         public List<TypeScriptInterface> Interfaces { get; } = new List<TypeScriptInterface>();
         public List<TypeScriptNamespace> Namespaces { get; } = new List<TypeScriptNamespace>();
@@ -339,6 +451,37 @@ namespace aistdoc
         public List<TypeScriptEnumeration> Enumerations { get; } = new List<TypeScriptEnumeration>();
         public List<TypeScriptVariable> Variables { get; } = new List<TypeScriptVariable>();
 
+        public string GetPath()
+        {
+            return BeautifulName;
+        }
+
+        public string FindPathToType(string name)
+        {
+            var classType = Classes.Where(c => c.IsExported).FirstOrDefault(cl => cl.Name == name);
+            if (classType != null) {
+                return classType.GetPath();
+            }
+
+            var interfaceType = Interfaces.Where(i => i.IsExported).FirstOrDefault(cl => cl.Name == name);
+            if (interfaceType != null) {
+                return interfaceType.GetPath();
+            }
+
+            var enumType = Enumerations.Where(e => e.IsExported).FirstOrDefault(cl => cl.Name == name);
+            if (enumType != null)  {
+                return enumType.GetPath();
+            }
+
+            foreach (var nspace in Namespaces.Where(n => n.IsExported)) {
+                var path = nspace.FindPathToType(name);
+                if (path != null) {
+                    return path;
+                }
+            }
+
+            return null;
+        }
     }
 
     public class TypeScriptComment
@@ -346,15 +489,25 @@ namespace aistdoc
         public string ShortText { get; set; }
         public string Text { get; set; }
         public string Returns { get; set; }
+        public Dictionary<string, string> Tags { get; set; } = new Dictionary<string, string>();
     }
 
-    public class TypeScriptLibrary: ITypeScriptLibrary
+    public class TypeScriptLibrary : ITypeScriptLibrary
     {
+        public string RootPath {get; set;}
+
         public List<TypeScriptPackage> Packages = new List<TypeScriptPackage>();
 
-        public string FindPathToType(int id, string name)
+        public string FindPathToType(string name)
         {
-            throw new System.NotImplementedException();
+            foreach (var package in Packages) {
+                var path = package.FindPathToType(name);
+                if (path != null) {
+                    return RootPath != null ? RootPath.CombineWithUri(path.MakeUriFromString()) : path.MakeUriFromString();
+                }
+            }
+
+            return null;
         }
     }
 }

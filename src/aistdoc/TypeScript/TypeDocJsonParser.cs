@@ -640,9 +640,21 @@ namespace aistdoc
             else if (type is TypeScriptReferenceType) {
                 LoadFromJObject((TypeScriptReferenceType)type, jobject);
             }
+            else if (type is TypesScriptStringLiteralType) {
+                LoadFromJObject((TypesScriptStringLiteralType)type, jobject);
+            }
 
             return type;
            
+        }
+
+        private void LoadFromJObject(TypesScriptStringLiteralType type, JObject jobject)
+        {
+
+            if (jobject.TryGetValue("value", out var valueToken)) {
+                type.Value = valueToken.ToObject<string>();
+            }
+
         }
 
         private void LoadFromJObject(TypeScriptComment comment, JObject jobject)

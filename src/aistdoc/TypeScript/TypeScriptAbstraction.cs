@@ -96,11 +96,23 @@ namespace aistdoc
                     return new TypeScriptReflectionType();
                 case "reference":
                     return new TypeScriptReferenceType();
+                case "stringLiteral":
+                    return new TypesScriptStringLiteralType();
                 default:
                     return new TypeScriptType();
             }
         }
 
+    }
+
+    public class TypesScriptStringLiteralType : TypeScriptType
+    {
+        public string Value { get; set; }
+
+        public override string Format(ITypeScriptLibrary lib, FormatMode mode = FormatMode.Markdown)
+        {
+            return MarkdownBuilder.MarkdownCodeQuote("\"" + Value + "\"");
+        }
     }
 
     public class TypeScriptArrayType: TypeScriptType

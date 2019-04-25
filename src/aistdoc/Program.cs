@@ -18,9 +18,7 @@ namespace aistdoc
     class Program {
 
         private static string _configFilePath = "aistdoc.json";
-        private static string _nameSpaceRegex = "";
         private static string _outputPath = "";
-        private static List<string> _files = new List<string>();
 
         static void Main(string[] args) {
 
@@ -30,7 +28,7 @@ namespace aistdoc
 
             var loggerFactory = new LoggerFactory();
             var logger = loggerFactory.AddConsole()
-                .CreateLogger("Aistant.DocImporter");
+                .CreateLogger("AistDoc");
 
 
             var startTime = DateTime.UtcNow;
@@ -45,7 +43,7 @@ namespace aistdoc
                   .SetBasePath(Directory.GetCurrentDirectory());
 
                 if (string.IsNullOrEmpty(_configFilePath)) {
-                    GenerateDefaultConfig("aistdoc.json");
+                    GenerateDefaultConfig("aistdoc.json", "cs");
                     throw new FileNotFoundException("Config file is required");
                 }
 
@@ -54,41 +52,13 @@ namespace aistdoc
                     builder.AddJsonFile(_configFilePath);
                 }
                 catch (FileNotFoundException ex) {
-                    GenerateDefaultConfig(_configFilePath);
+                    GenerateDefaultConfig(_configFilePath, "cs");
                     throw ex;
                 }
             
                 var configuration = builder.Build();
 
                 var aistantSettings = configuration.GetSection("aistant").Get<AistantSettings>();
-                var path = configuration.GetSection("source:path").Get<string>();
-
-                var fileRegexPattern = configuration.GetSection("source:filter:assembly").Get<string>();
-                Regex fileRegex = null;
-                if (!string.IsNullOrEmpty(fileRegexPattern)) {
-                    fileRegex = new Regex(fileRegexPattern);
-                }
-
-                _nameSpaceRegex = configuration.GetSection("source:filter:namespace").Get<string>();
-
-                //Finds all dll files with current pattern
-                Func<string, bool> isFileToProcess = (s) => {
- 
-                    if (!s.EndsWith(".dll")) {
-                        return false;
-                    }
-
-                    if (fileRegex != null) {
-                        var fileName = s.Substring(s.LastIndexOf("\\") + 1);
-                        if (!fileRegex.IsMatch(fileName)) {
-                            return false;
-                        }
-                    }                   
-
-                    return true;
-                };
-
-                var files = Directory.GetFiles(path).Where(isFileToProcess).ToList();
 
                 IArticleSaver saver = null;
                 if (!string.IsNullOrEmpty(_outputPath)) {
@@ -97,47 +67,18 @@ namespace aistdoc
                 else {
                     saver = new AistantSaver(aistantSettings, logger);
                 }
- 
-                List<MarkdownableType> types = new List<MarkdownableType>();
-                foreach (var file in files) {
-                    types.AddRange(MarkdownGenerator.Load(file, _nameSpaceRegex));
+
+                var mode = configuration["source:mode"].ToString();
+
+                IDocGenerator generator;
+                if (mode == "typescript") {
+                    generator = new TypeScriptDocGenerator(configuration);
+                }
+                else {
+                    generator = new CSharpDocGenerator(configuration, _outputPath);
                 }
 
-                int articleCount = 0;
-                foreach (var g in types.GroupBy(x => x.Namespace).OrderBy(x => x.Key)) {
-
-                    if (!Directory.Exists(dest)) {
-                        Directory.CreateDirectory(dest);
-                    }
-
-                    string sectionName = g.Key + " namespace";
-
-                    foreach (var item in g.OrderBy(x => x.Name).Distinct(new MarkdownableTypeEqualityComparer())) {
-
-                        SetLinks(item, types, aistantSettings.Kb, aistantSettings.Section.Uri, aistantSettings.Team);
-                      
-                        string itemName = item.GetNameWithKind();
-
-                        string itemString = item.ToString();
-                        string itemSummary = item.GetSummary();
-
-                        
-                        bool ok = saver.SaveArticle(
-                            sectionName,
-                            sectionName.MakeUriFromString(),
-                            itemName.MakeUriFromString(),
-                            itemName,
-                            itemString,
-                            itemSummary          
-                        );
-                        
-                        if (ok) {
-                            articleCount++;
-                        }                       
-                    }
-
-                    articleCount++;
-                }
+                var articleCount = generator.Generate(saver);
 
                 logger.LogInformation("Done! " + $"{articleCount} documents added or updated");
              
@@ -148,55 +89,6 @@ namespace aistdoc
 
             logger.LogInformation("Time Elapsed : " + (DateTime.UtcNow - startTime));
             Thread.Sleep(100);
-
-#if DEBUG
-            Console.ReadKey();
-#endif
-
-        }
-
-        static void SetLinks(MarkdownableType type, List<MarkdownableType> types, string kbUrl, string sectionUrl, string moniker) {
-            foreach (var comments in type.CommentLookUp) {
-                foreach (var comment in comments) {
-                    comment.Summary = Regex.Replace(comment.Summary, @"<see cref=""\w:([^\""]*)""\s*\/>", m => ResolveSeeElement(m, types, kbUrl, sectionUrl, moniker));
-                }
-            }
-        }
-
-        static string ResolveSeeElement(Match m, List<MarkdownableType> types, string kbUrl, string sectionUrl, string moniker) {
-            var type = m.Groups[1].Value;
-
-            var lastIndexOfPoint = type.LastIndexOf(".");
-            if (lastIndexOfPoint == -1)
-                 return $"`{type.Replace('`', '\'')}`";
-
-            var nameSpace =  type.Remove(type.LastIndexOf("."));
-            var typeName = type.Substring(type.LastIndexOf(".") + 1);
-
-            var foundTypeNameWithKind = types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == typeName)?.GetNameWithKind();
-            while (string.IsNullOrEmpty(foundTypeNameWithKind)) {
-             
-                lastIndexOfPoint = nameSpace.LastIndexOf(".");
-
-                if (lastIndexOfPoint == -1)
-                    break;
-
-                typeName = nameSpace.Substring(lastIndexOfPoint + 1);
-                nameSpace = nameSpace.Remove(lastIndexOfPoint);
-
-                foundTypeNameWithKind = types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == typeName)?.GetNameWithKind();
-            }
-            if (string.IsNullOrEmpty(foundTypeNameWithKind)) {
-                return $"`{type.Replace('`', '\'')}`";
-            }
-            string url = (nameSpace + " namespace").MakeUriFromString().CombineWithUri(foundTypeNameWithKind.MakeUriFromString());
-            if (string.IsNullOrEmpty(_outputPath)) {
-                if (!string.IsNullOrEmpty(sectionUrl)) {
-                    url = sectionUrl.CombineWithUri(url);
-                }
-            }
-
-            return $"[{type}]({url})";
         }
 
         static bool ReadArgs(string[] args) {
@@ -206,8 +98,10 @@ namespace aistdoc
                     _configFilePath = arg.Substring("--config:".Length);
                 }
                 else if (arg.Contains("--create:")) {
-                    var configName = arg.Substring("--create:".Length);
-                    GenerateDefaultConfig(configName);
+                    var configNameWithMode = arg.Substring("--create:".Length);
+                    var configName = configNameWithMode.Substring(3);
+                    var mode = configNameWithMode.Remove(2);
+                    GenerateDefaultConfig(configName, mode);
                     return false;
                 }
                 else if (arg.Contains("--output:")) {
@@ -229,7 +123,7 @@ namespace aistdoc
             return true;
         }
 
-        static void GenerateDefaultConfig(string configName) {
+        static void GenerateDefaultConfig(string configName, string mode) {
             if (string.IsNullOrEmpty(configName)) {
                 configName = _configFilePath;
             }
@@ -238,7 +132,9 @@ namespace aistdoc
                 configName += ".json";
             }
 
-            string content = ResourceFiles.GetResourceAsString("Resources", "config.json");
+            string templateFile = "config-" + ((mode == "cs") ? "csharp" : (mode == "ts") ? "typescript" : throw new UnknownParameterException("Wrong mode: " + mode)) + ".json";
+
+            string content = ResourceFiles.GetResourceAsString("Resources", templateFile);
             File.WriteAllText(configName, content);
             Console.WriteLine($"Config {configName} successfully created");
 

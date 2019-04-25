@@ -6,8 +6,19 @@ namespace aistdoc
 
     internal class MarkdownBuilder {
 
-        public static string MarkdownCodeQuote(string code) {
+        public static string MarkdownCodeQuote(string code)
+        {
             return "`" + code + "`";
+        }
+
+        public static string MarkdownItalic(string text)
+        {
+            return "*" + text + "*";
+        }
+
+        public static string MarkdownUrl(string title, string url)
+        {
+            return $"[{title}]({url})";
         }
 
 
@@ -109,6 +120,12 @@ namespace aistdoc
         {
             sb.Append("- ");
             sb.AppendLine(text);
+        }
+
+        public void AppendSeparateLine()
+        {
+            sb.AppendLine();
+            sb.AppendLine("---");
         }
 
         public void ListLink(string text, string url) // nest zero

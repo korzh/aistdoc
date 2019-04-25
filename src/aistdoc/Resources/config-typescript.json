@@ -27,16 +27,13 @@
 
   // Your source code settings
   "source": {
-    // The path to the folder where your library's assemblies (DLLs) and XML documentation files are stored. Required.
-    "path": "C:\\Projects\\Test\\publish",
 
-    // Here you can define a filter for the assemblies and namespaces you would like to process
-    // You can user regular expressions for both 'assebmly' and 'namespace' filters.
-    // It's better to define at least one of them to skip the code that is not yours
-    "filter": {
-      "assembly": "^YourAssemblyName", 
+    //Current mode. Required.
+    "mode": "typescript",
 
-      "namespace": ""
-    }
+    // TypeDoc JSON files. Required.
+    "files": [
+      //Enter here your files
+    ]
   }
 }

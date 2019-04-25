@@ -28,7 +28,7 @@ namespace aistdoc
 
             var loggerFactory = new LoggerFactory();
             var logger = loggerFactory.AddConsole()
-                .CreateLogger("Aistant.DocImporter");
+                .CreateLogger("AistDoc");
 
 
             var startTime = DateTime.UtcNow;

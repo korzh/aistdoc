@@ -58,6 +58,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="aistdoc-public.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="aistdoc.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -89,11 +89,6 @@ namespace aistdoc
 
             logger.LogInformation("Time Elapsed : " + (DateTime.UtcNow - startTime));
             Thread.Sleep(100);
-
-#if DEBUG
-            Console.ReadKey();
-#endif
-
         }
 
         static bool ReadArgs(string[] args) {

@@ -91,7 +91,7 @@ namespace Aistant.KbService {
         public string Title { get; set; } = "";
     }
 
-    public class AistantKbService {
+    public class AistantKbService: IDisposable {
 
         private ILogger _logger;
 
@@ -108,6 +108,8 @@ namespace Aistant.KbService {
         private string _nullSectionUri = "NULL";
 
         private Dictionary<string, Dictionary<string, int>> _indexNumMetaInfo;
+
+        private HttpClient _httpClient = new HttpClient();
 
         public AistantKbService(AistantSettings settings, ILogger logger = null) {
             _logger = logger;
@@ -452,8 +454,7 @@ namespace Aistant.KbService {
                 await Login();
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                         .CombineWithUri(_settings.PublicEndpoint)
@@ -461,7 +462,7 @@ namespace Aistant.KbService {
                         .CombineWithUri("kbs")
                         .CombineWithUri(uri);
 
-            var response = await http.GetAsync(url);
+            var response = await _httpClient.GetAsync(url);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             return !string.IsNullOrEmpty(responseStr)
@@ -482,8 +483,7 @@ namespace Aistant.KbService {
                 throw new Exception("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                         .CombineWithUri(_settings.DocsEndpoint)
@@ -491,7 +491,7 @@ namespace Aistant.KbService {
                         .CombineWithUri(_currentKb.Moniker)
                         .CombineWithUri("all");
 
-            var response = await http.GetAsync(url);
+            var response = await _httpClient.GetAsync(url);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK) {
@@ -517,8 +517,7 @@ namespace Aistant.KbService {
                 throw new Exception("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                         .CombineWithUri(_settings.ArticlesEndpoint)
@@ -531,7 +530,7 @@ namespace Aistant.KbService {
             uriBuilder.Query = query.ToString();
             url = uriBuilder.ToString();
 
-            var response = await http.GetAsync(url);
+            var response = await _httpClient.GetAsync(url);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK) {
@@ -561,14 +560,13 @@ namespace Aistant.KbService {
                 throw new Exception("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                         .CombineWithUri(_settings.ArticlesEndpoint)
                         .CombineWithUri(id);
 
-            var response = await http.GetAsync(url);
+            var response = await _httpClient.GetAsync(url);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK) {
@@ -602,8 +600,7 @@ namespace Aistant.KbService {
                 throw new Exception("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost.CombineWithUri(_settings.ArticlesEndpoint);
 
@@ -613,7 +610,7 @@ namespace Aistant.KbService {
                     "application/json"
                 );
 
-            var response = await http.PostAsync(url, content);
+            var response = await _httpClient.PostAsync(url, content);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK
@@ -641,8 +638,7 @@ namespace Aistant.KbService {
                 throw new Exception("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                         .CombineWithUri(_settings.ArticlesEndpoint)
@@ -655,7 +651,7 @@ namespace Aistant.KbService {
             uriBuilder.Query = query.ToString();
             url = uriBuilder.ToString();
 
-            var response = await http.GetAsync(url);
+            var response = await _httpClient.GetAsync(url);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK) {
@@ -690,8 +686,7 @@ namespace Aistant.KbService {
                 throw new KbRequestError("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost.CombineWithUri(_settings.ArticlesEndpoint);
 
@@ -701,7 +696,7 @@ namespace Aistant.KbService {
                     "application/json"
                 );
 
-            var response = await http.PostAsync(url, content);
+            var response = await _httpClient.PostAsync(url, content);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK
@@ -730,8 +725,7 @@ namespace Aistant.KbService {
                 throw new KbRequestError("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                 .CombineWithUri(_settings.ArticlesEndpoint)
@@ -744,7 +738,7 @@ namespace Aistant.KbService {
                     "application/json"
                 );
 
-            var response = await http.PostAsync(url, content);
+            var response = await _httpClient.PostAsync(url, content);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK) {
@@ -773,8 +767,7 @@ namespace Aistant.KbService {
 
             article.LastVersion++;
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                 .CombineWithUri(_settings.ArticlesEndpoint)
@@ -787,7 +780,7 @@ namespace Aistant.KbService {
                     "application/json"
                 );
 
-            var response = await http.PostAsync(url, content);
+            var response = await _httpClient.PostAsync(url, content);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK) { }
@@ -823,8 +816,7 @@ namespace Aistant.KbService {
                 throw new KbRequestError("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                 .CombineWithUri(_settings.ArticlesEndpoint)
@@ -837,7 +829,7 @@ namespace Aistant.KbService {
                     "application/json"
                 );
 
-            var response = await http.PostAsync(url, content);
+            var response = await _httpClient.PostAsync(url, content);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK) {
@@ -866,6 +858,12 @@ namespace Aistant.KbService {
                 _logger.LogError(string.Format("{0} ERROR: {1}", DateTime.Now.ToString("HH:mm:ss"), text));
             }
           
+        }
+
+
+        public void Dispose()
+        {
+            _httpClient.Dispose();
         }
         #endregion
 

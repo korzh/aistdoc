@@ -168,7 +168,7 @@ namespace aistdoc
     }
     #endregion
 
-    public class TypeScriptInterface : ITypeScriptContract, ITypeScriptImplemented
+    public class TypeScriptInterface : ITypeScriptContract, ITypeScriptExtended
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -180,7 +180,7 @@ namespace aistdoc
         public bool IsExported { get; set; }
         public List<TypeScriptProperty> Properties { get; set; } = new List<TypeScriptProperty>();
         public List<TypeScriptMethod> Methods { get; set; } = new List<TypeScriptMethod>();
-        public List<TypeScriptType> ImplementedTypes { get; set; } = new List<TypeScriptType>();
+        public List<TypeScriptType> ExtendedTypes { get; set; } = new List<TypeScriptType>();
 
         public TypeScriptInterface(ITypeScriptModule module)
         {

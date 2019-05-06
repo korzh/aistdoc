@@ -109,7 +109,7 @@ namespace Aistant.KbService {
 
         private Dictionary<string, Dictionary<string, int>> _indexNumMetaInfo;
 
-        private HttpClient _httpClient;
+        private HttpClient _httpClient = new HttpClient();
 
         public AistantKbService(AistantSettings settings, ILogger logger = null) {
             _logger = logger;
@@ -170,8 +170,6 @@ namespace Aistant.KbService {
                     _mainSection = PublishArticleAsync(_mainSection).Result;
                 }
             }
-
-            _httpClient = new HttpClient();
         }
 
         public void SetLogger(ILogger logger) {

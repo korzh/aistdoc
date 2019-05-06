@@ -448,6 +448,7 @@ namespace aistdoc
         {
             mb.Header(4, function.Name);
             mb.AppendLine(function.Format(_lib));
+            mb.AppendLine();
             if (!string.IsNullOrEmpty(function.Signature.Comment?.ShortText)) {
                 mb.AppendLine(function.Signature.Comment.ShortText);
             }
@@ -515,6 +516,7 @@ namespace aistdoc
         {
             mb.Header(4, MarkdownBuilder.MarkdownCodeQuote(variable.IsConst ? "const" : variable.IsLet ? "let" : "var") + " " +  variable.Name);
             mb.AppendLine(variable.Format(_lib));
+            mb.AppendLine();
             if (!string.IsNullOrEmpty(variable.Comment?.ShortText)) {
                 mb.AppendLine(variable.Comment.ShortText);
             }
@@ -612,6 +614,7 @@ namespace aistdoc
         {
             mb.Header(4, method.Name);
             mb.AppendLine(method.Format(_lib));
+            mb.AppendLine();
             if (!string.IsNullOrEmpty(method.Signature.Comment?.ShortText)) {
                 mb.AppendLine(method.Signature.Comment.ShortText);
             }
@@ -669,6 +672,7 @@ namespace aistdoc
         {
             mb.Header(4, property.Name);
             mb.AppendLine(property.Format(_lib));
+            mb.AppendLine();
             if (!string.IsNullOrEmpty(property.Comment?.ShortText)) {
                 mb.AppendLine(property.Comment.ShortText);
             }

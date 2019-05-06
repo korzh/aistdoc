@@ -333,10 +333,10 @@ namespace aistdoc
                 LoadFromJObject(@interface.Comment, commentToken.ToObject<JObject>());
             }
 
-            if (jobject.TryGetValue("implementedTypes", out var impTypesToken)) {
-                var typeObjs = impTypesToken.ToObject<List<JObject>>();
+            if (jobject.TryGetValue("extendedTypes", out var extendedTypesToken)) {
+                var typeObjs = extendedTypesToken.ToObject<List<JObject>>();
                 foreach (var typeObj in typeObjs) {
-                    @interface.ImplementedTypes.Add(LoadTypeFromJObject(typeObj));
+                    @interface.ExtendedTypes.Add(LoadTypeFromJObject(typeObj));
                 }
 
             }

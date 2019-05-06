@@ -260,19 +260,15 @@ namespace aistdoc
                 mb.Header(2, "Constructors");
                 mb.AppendSeparateLine();
                 mb.Header(4, "constructor");
-                mb.AppendLine("⊕ " + @class.Constructor.Signature.Format(_lib));
+                mb.AppendLine();
                 if (!string.IsNullOrEmpty(@class.Constructor.Signature.Comment?.ShortText)) {
                     mb.AppendLine(@class.Constructor.Signature.Comment.ShortText);
                 }
 
-                if (@class.Constructor.Signature.Parameters.Count > 0) {
-                    mb.Header(5, "Parameters");
+                mb.AppendLine("⊕ " + @class.Constructor.Signature.Format(_lib));
+                mb.AppendLine();
 
-                    foreach (var param in @class.Constructor.Signature.Parameters) {
-                        mb.List($"{ParameterInfo(param)}{(param.Comment != null ? "- " + param.Comment.ShortText : "")}");
-                    }
-                    mb.AppendLine();
-                }
+                BuildParameters(mb, @class.Constructor.Signature.Parameters);
 
                 BuildExample(mb, @class.Constructor.Signature.Comment);
 
@@ -447,33 +443,17 @@ namespace aistdoc
         private void BuildContent(MarkdownBuilder mb, TypeScriptFunction function)
         {
             mb.Header(4, function.Name);
-            mb.AppendLine(function.Format(_lib));
             mb.AppendLine();
             if (!string.IsNullOrEmpty(function.Signature.Comment?.ShortText)) {
                 mb.AppendLine(function.Signature.Comment.ShortText);
-            }
-
-            if (function.Signature.Parameters.Count > 0) {
-                mb.Header(5, "Parameters");
-
-
-                foreach (var param in function.Signature.Parameters) {
-                    var paramInfo = ParameterInfo(param);
-                    if (param.Comment?.ShortText != null) {
-                        paramInfo += " - " + param.Comment.ShortText;
-                    }
-
-                    if (param.Comment?.Text != null) {
-                        paramInfo += " - " + param.Comment.Text;
-                    }
-
-                    mb.List(paramInfo);
-                }
-
                 mb.AppendLine();
             }
 
+            mb.AppendLine(function.Format(_lib));
+
             mb.AppendLine();
+
+            BuildParameters(mb, function.Signature.Parameters); 
         
             mb.Append($"**Returns** " + function.Signature.Type.Format(_lib));
             if (!string.IsNullOrEmpty(function.Signature.Comment?.Returns)) {
@@ -515,12 +495,13 @@ namespace aistdoc
         private void BuildContent(MarkdownBuilder mb, TypeScriptVariable variable)
         {
             mb.Header(4, MarkdownBuilder.MarkdownCodeQuote(variable.IsConst ? "const" : variable.IsLet ? "let" : "var") + " " +  variable.Name);
-            mb.AppendLine(variable.Format(_lib));
             mb.AppendLine();
             if (!string.IsNullOrEmpty(variable.Comment?.ShortText)) {
                 mb.AppendLine(variable.Comment.ShortText);
+                mb.AppendLine();
             }
 
+            mb.AppendLine(variable.Format(_lib));
             mb.AppendLine();
 
             BuildExample(mb, variable.Comment);
@@ -540,7 +521,7 @@ namespace aistdoc
 
             BuildExample(mb, @interface.Comment);
 
-            BuildImplementedTypes(mb, @interface);
+            BuildExtendedTypes(mb, @interface);
 
             BuildIndex(mb, @interface);
 
@@ -607,36 +588,22 @@ namespace aistdoc
             }
 
             mb.AppendLine();
-
+            mb.AppendLine();
         }
 
         private void BuildContent(MarkdownBuilder mb, TypeScriptMethod method)
         {
             mb.Header(4, method.Name);
-            mb.AppendLine(method.Format(_lib));
-            mb.AppendLine();
+
             if (!string.IsNullOrEmpty(method.Signature.Comment?.ShortText)) {
                 mb.AppendLine(method.Signature.Comment.ShortText);
-            }
-
-            if (method.Signature.Parameters.Count > 0) {
-                mb.Header(5, "Parameters");
-
-                foreach (var param in method.Signature.Parameters) {
-                    var paramInfo = ParameterInfo(param);
-                    if (param.Comment?.ShortText != null) {
-                        paramInfo += " - " + param.Comment.ShortText;
-                    }
-
-                    if (param.Comment?.Text != null) {
-                        paramInfo += " - " + param.Comment.Text;
-                    }
-
-                    mb.List(paramInfo);
-                }
-
                 mb.AppendLine();
             }
+
+            mb.AppendLine(method.Format(_lib));
+            mb.AppendLine();
+
+            BuildParameters(mb, method.Signature.Parameters);
 
             mb.AppendLine();
             mb.Append($"**Returns** " + method.Signature.Type.Format(_lib));
@@ -648,6 +615,31 @@ namespace aistdoc
             BuildExample(mb, method.Signature.Comment);
 
             mb.AppendSeparateLine();
+        }
+
+        private void BuildParameters(MarkdownBuilder mb, List<TypeScriptParameter> parameters) {
+            if (parameters.Count > 0) {
+                mb.Header(5, "Parameters:");
+
+                foreach (var param in parameters)
+                {
+                    var paramInfo = ParameterInfo(param);
+                    if (param.Comment != null) {
+                        if (!string.IsNullOrEmpty(param.Comment.ShortText)) {
+                            paramInfo += " - " + param.Comment.ShortText;
+                        }
+                        else if (!string.IsNullOrEmpty(param.Comment.Text)) {
+                            paramInfo += " - " + param.Comment.Text;
+
+                        }
+                    }
+
+                    mb.List(paramInfo);
+                }
+
+                mb.AppendLine();
+            }
+
         }
 
         private string ParameterInfo(TypeScriptParameter param)
@@ -671,11 +663,14 @@ namespace aistdoc
         private void BuildContent(MarkdownBuilder mb, TypeScriptProperty property)
         {
             mb.Header(4, property.Name);
-            mb.AppendLine(property.Format(_lib));
+
             mb.AppendLine();
             if (!string.IsNullOrEmpty(property.Comment?.ShortText)) {
                 mb.AppendLine(property.Comment.ShortText);
+                mb.AppendLine();
             }
+
+            mb.AppendLine(property.Format(_lib));
 
             BuildExample(mb, property.Comment);
 

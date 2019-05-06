@@ -54,96 +54,68 @@ namespace aistdoc
 
         }
 
-        private void LoadFromJObject(TypeScriptPackage package, JObject jobject) {
+        private void LoadFromJObject(TypeScriptPackage package, JObject jobject)
+        {
 
-            if (jobject.TryGetValue("name", out var nameToken)) {
+            if (jobject.TryGetValue("name", out var nameToken))
+            {
                 package.Name = nameToken.ToString();
             }
 
 
-            if (jobject.TryGetValue("children", out var externalModulesToken)) {
+            if (jobject.TryGetValue("children", out var childrenToken))
+            {
 
                 //expects here extenral modules
-                var externalModules = externalModulesToken.ToObject<List<JObject>>();
+                var children = childrenToken.ToObject<List<JObject>>();
 
-                foreach (var externalModule in externalModules) {
-                    var kind = externalModule["kind"].ToObject<TypeScriptTokenKind>();
 
-                    if (kind != TypeScriptTokenKind.ExternalModule) {
-                        continue;
+                foreach (var child in children)
+                {
+                    var childKind = child["kind"].ToObject<TypeScriptTokenKind>();
+                    if (childKind == TypeScriptTokenKind.Class)
+                    {
+                        var @class = new TypeScriptClass(package);
+                        LoadFromJObject(@class, child);
+                        package.Classes.Add(@class);
                     }
-
-                    var isExported = false;
-                    if (externalModule.TryGetValue("flags", out var flagsToken)) {
-                        var flagsObj = flagsToken.ToObject<JObject>();
-
-                        if (flagsObj.TryGetValue("isExported", out var isExportedToken)) {
-                            isExported = isExportedToken.ToObject<bool>();
-                        }
+                    else if (childKind == TypeScriptTokenKind.Interface)
+                    {
+                        var @interface = new TypeScriptInterface(package);
+                        LoadFromJObject(@interface, child);
+                        package.Interfaces.Add(@interface);
                     }
-
-                    if (externalModule.TryGetValue("children", out var childrenToken)) {
-                        var children = childrenToken.ToObject<List<JObject>>();
-
-                        foreach (var child in children) {
-                            var childKind = child["kind"].ToObject<TypeScriptTokenKind>();
-                            if (childKind == TypeScriptTokenKind.Class) {
-                                var @class = new TypeScriptClass(package);
-                                LoadFromJObject(@class, child);
-                                if (!isExported)
-                                {
-                                    @class.IsExported = false;
-                                }
-                                package.Classes.Add(@class);
-                            }
-                            else if (childKind == TypeScriptTokenKind.Interface) {
-                                var @interface = new TypeScriptInterface(package);
-                                LoadFromJObject(@interface, child);
-                                if (!isExported) {
-                                    @interface.IsExported = false;
-                                }
-                                package.Interfaces.Add(@interface);
-                            }
-                            else if (childKind == TypeScriptTokenKind.Function) {
-                                var function = new TypeScriptFunction(package);
-                                LoadFromJObject(function, child);
-                                if (!isExported) {
-                                    function.IsExported = false;
-                                }
-                                package.Functions.Add(function);
-                            }
-                            else if (childKind == TypeScriptTokenKind.Namespace) {
-                                var @namespace = new TypeScriptNamespace(package);
-                                LoadFromJObject(@namespace, child);
-                                if (!isExported) {
-                                    @namespace.IsExported = false;
-                                }
-                                package.Namespaces.Add(@namespace);
-                            }
-                            else if (childKind == TypeScriptTokenKind.Enumeration) {
-                                var @enum = new TypeScriptEnumeration(package);
-                                LoadFromJObject(@enum, child);
-                                if (!isExported) {
-                                    @enum.IsExported = false;
-                                }
-                                package.Enumerations.Add(@enum);
-                            }
-                            else if (childKind == TypeScriptTokenKind.Varialbe) {
-                                var @var = new TypeScriptVariable(package);
-                                LoadFromJObject(var, child);
-                                if (!isExported) {
-                                    @var.IsExported = false;
-                                }
-                                package.Variables.Add(@var);
-                            }
-                        }
+                    else if (childKind == TypeScriptTokenKind.Function)
+                    {
+                        var function = new TypeScriptFunction(package);
+                        LoadFromJObject(function, child);
+                        package.Functions.Add(function);
                     }
-
-
-                    if (jobject.TryGetValue("comment", out var commentToken)) {
-                        package.Comment = new TypeScriptComment();
-                        LoadFromJObject(package.Comment, commentToken.ToObject<JObject>());
+                    else if (childKind == TypeScriptTokenKind.Namespace)
+                    {
+                        var @namespace = new TypeScriptNamespace(package);
+                        LoadFromJObject(@namespace, child);
+                        package.Namespaces.Add(@namespace);
                     }
+                    else if (childKind == TypeScriptTokenKind.Enumeration)
+                    {
+                        var @enum = new TypeScriptEnumeration(package);
+                        LoadFromJObject(@enum, child);
+                        package.Enumerations.Add(@enum);
+                    }
+                    else if (childKind == TypeScriptTokenKind.Varialbe)
+                    {
+                        var @var = new TypeScriptVariable(package);
+                        LoadFromJObject(var, child);
+                        package.Variables.Add(@var);
+                    }
+                }
+
+
+                if (jobject.TryGetValue("comment", out var commentToken))
+                {
+                    package.Comment = new TypeScriptComment();
+                    LoadFromJObject(package.Comment, commentToken.ToObject<JObject>());
                 }
             }
         }

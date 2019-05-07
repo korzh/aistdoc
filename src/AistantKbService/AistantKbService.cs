@@ -799,11 +799,6 @@ namespace Aistant.KbService {
 
         private async Task<AistantArticle> PublishArticleAsync(AistantArticle article) {
 
-            if (article.State == ArticleState.Published) {
-                Info($"Article is ALREADY PUBLISHED:  {article.Uri} - {article.IndexTitle} (version: {article.PubVersion})");
-                return article;
-            }
-
             if (string.IsNullOrEmpty(_accessToken)) {
                 await Login();
             }
@@ -859,14 +854,12 @@ namespace Aistant.KbService {
             }
           
         }
-
+        #endregion
 
         public void Dispose()
         {
             _httpClient.Dispose();
         }
-        #endregion
-
     }
 
 

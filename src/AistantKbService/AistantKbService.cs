@@ -91,7 +91,7 @@ namespace Aistant.KbService {
         public string Title { get; set; } = "";
     }
 
-    public class AistantKbService {
+    public class AistantKbService: IDisposable {
 
         private ILogger _logger;
 
@@ -108,6 +108,8 @@ namespace Aistant.KbService {
         private string _nullSectionUri = "NULL";
 
         private Dictionary<string, Dictionary<string, int>> _indexNumMetaInfo;
+
+        private HttpClient _httpClient = new HttpClient();
 
         public AistantKbService(AistantSettings settings, ILogger logger = null) {
             _logger = logger;
@@ -197,7 +199,7 @@ namespace Aistant.KbService {
         /// <param name="title">title of article</param>
         /// <param name="body">body of article</param>
         /// <returns></returns>
-        public async Task<bool> UploadArticleAsync(string uri, string title, string body, string excerpt) {
+        public async Task<bool> UploadArticleAsync(string uri, string title, string body, string excerpt, bool isSection = false) {
 
             if (string.IsNullOrEmpty(_accessToken)) {
                 await Login();
@@ -214,7 +216,9 @@ namespace Aistant.KbService {
                 article.IndexTitle = title;
                 article.Title = title;
                 article.Uri = articleUri;
+                article.Excerpt = excerpt;
                 article.KbId = _currentKb.Id;
+                article.Kind = (isSection) ? DocItemKind.Section : DocItemKind.Article;
 
                 if (_mainSection != null) {
                     article.ParentId = _mainSection.Id;
@@ -225,11 +229,15 @@ namespace Aistant.KbService {
                     article.IndexNum = GetMaxIndexNumForDoc(_nullSectionUri) + 1024;
                     _indexNumMetaInfo[_nullSectionUri].Add(article.Uri, article.IndexNum);
                 }
+
+                if (isSection) {
+                    _indexNumMetaInfo[article.Uri] = new Dictionary<string, int>();
+                }
                
                 article.FormatType = FormatType.Markdown;
 
-                article = await CreateArticleAsync(article);
-               
+                article = (isSection) ? await CreateSectionAsync(article) : await CreateArticleAsync(article);
+
             }
             else {
                 if (article.Content != body) {
@@ -248,7 +256,6 @@ namespace Aistant.KbService {
                 article = await PublishArticleAsync(article);
             }
 
-
             return article != null;
         }
 
@@ -261,10 +268,10 @@ namespace Aistant.KbService {
         /// <param name="articleTitle">Article's title</param>
         /// <param name="articleBody">Article's body</param>
         /// <returns></returns>
-        public async Task<bool> UploadArticleAsync(string sectionUri, string sectionTitle, string articleUri, string articleTitle, string articleBody, string articleExcerpt) {
+        public async Task<bool> UploadArticleAsync(string sectionUri, string sectionTitle, string articleUri, string articleTitle, string articleBody, string articleExcerpt, bool isSection = false) {
 
             if (string.IsNullOrEmpty(sectionUri)) {
-                throw new Exception("sectionUri can't be empty.");
+                return await UploadArticleAsync(articleUri, articleTitle, articleBody, articleExcerpt, isSection);
             }
 
             if (string.IsNullOrEmpty(_accessToken)) {
@@ -301,8 +308,8 @@ namespace Aistant.KbService {
                 else {
                     currentSection = GetSectionByIdAsync(currentSection.Id).Result;
 
-                    if (currentSection.Title != sectionTitle
-                       || currentSection.IndexTitle != sectionTitle) {
+                    if (sectionTitle != null && (currentSection.Title != sectionTitle
+                       || currentSection.IndexTitle != sectionTitle)) {
                         currentSection.Title = sectionTitle;
                         currentSection.IndexTitle = sectionTitle;
 
@@ -331,18 +338,22 @@ namespace Aistant.KbService {
                 article.IndexTitle = articleTitle;
                 article.Title = articleTitle;
                 article.Uri = newArticleUri;
-                article.Kind = DocItemKind.Article;
                 article.KbId = _currentKb.Id;
                 article.Excerpt = articleExcerpt;
-
+                article.Kind = (isSection) ? DocItemKind.Section : DocItemKind.Article;
                 article.ParentId = currentSection.Id;
                 article.IndexNum = GetMaxIndexNumForDoc(currentSection.Uri) + 1024;
 
                 _indexNumMetaInfo[currentSection.Uri].Add(article.Uri, article.IndexNum);
-                
+
+                if (isSection) {
+                    _indexNumMetaInfo[article.Uri] = new Dictionary<string, int>();
+                }
+
+
                 article.FormatType = FormatType.Markdown;
 
-                article = await CreateArticleAsync(article);
+                article = (isSection) ? await CreateSectionAsync(article) : await CreateArticleAsync(article);
 
             }
             else {
@@ -443,8 +454,7 @@ namespace Aistant.KbService {
                 await Login();
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                         .CombineWithUri(_settings.PublicEndpoint)
@@ -452,7 +462,7 @@ namespace Aistant.KbService {
                         .CombineWithUri("kbs")
                         .CombineWithUri(uri);
 
-            var response = await http.GetAsync(url);
+            var response = await _httpClient.GetAsync(url);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             return !string.IsNullOrEmpty(responseStr)
@@ -473,8 +483,7 @@ namespace Aistant.KbService {
                 throw new Exception("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                         .CombineWithUri(_settings.DocsEndpoint)
@@ -482,7 +491,7 @@ namespace Aistant.KbService {
                         .CombineWithUri(_currentKb.Moniker)
                         .CombineWithUri("all");
 
-            var response = await http.GetAsync(url);
+            var response = await _httpClient.GetAsync(url);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK) {
@@ -508,8 +517,7 @@ namespace Aistant.KbService {
                 throw new Exception("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                         .CombineWithUri(_settings.ArticlesEndpoint)
@@ -522,7 +530,7 @@ namespace Aistant.KbService {
             uriBuilder.Query = query.ToString();
             url = uriBuilder.ToString();
 
-            var response = await http.GetAsync(url);
+            var response = await _httpClient.GetAsync(url);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK) {
@@ -552,14 +560,13 @@ namespace Aistant.KbService {
                 throw new Exception("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                         .CombineWithUri(_settings.ArticlesEndpoint)
                         .CombineWithUri(id);
 
-            var response = await http.GetAsync(url);
+            var response = await _httpClient.GetAsync(url);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK) {
@@ -593,8 +600,7 @@ namespace Aistant.KbService {
                 throw new Exception("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost.CombineWithUri(_settings.ArticlesEndpoint);
 
@@ -604,7 +610,7 @@ namespace Aistant.KbService {
                     "application/json"
                 );
 
-            var response = await http.PostAsync(url, content);
+            var response = await _httpClient.PostAsync(url, content);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK
@@ -632,8 +638,7 @@ namespace Aistant.KbService {
                 throw new Exception("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                         .CombineWithUri(_settings.ArticlesEndpoint)
@@ -646,7 +651,7 @@ namespace Aistant.KbService {
             uriBuilder.Query = query.ToString();
             url = uriBuilder.ToString();
 
-            var response = await http.GetAsync(url);
+            var response = await _httpClient.GetAsync(url);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK) {
@@ -666,7 +671,7 @@ namespace Aistant.KbService {
         private async Task<AistantArticle> CreateArticleAsync(AistantArticle article) {
 
             if (article.Kind == DocItemKind.Section) {
-                throw new InvalidActionException("Use method CreateSectionAsync to create an article");
+                throw new InvalidActionException("Use method CreateSectionAsync to create section");
             }
 
             if (string.IsNullOrEmpty(_accessToken)) {
@@ -681,8 +686,7 @@ namespace Aistant.KbService {
                 throw new KbRequestError("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost.CombineWithUri(_settings.ArticlesEndpoint);
 
@@ -692,7 +696,7 @@ namespace Aistant.KbService {
                     "application/json"
                 );
 
-            var response = await http.PostAsync(url, content);
+            var response = await _httpClient.PostAsync(url, content);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK
@@ -721,22 +725,20 @@ namespace Aistant.KbService {
                 throw new KbRequestError("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                 .CombineWithUri(_settings.ArticlesEndpoint)
                 .CombineWithUri(article.Id)
                 .CombineWithUri("versions");
 
-            article.LastVersion++;
             var content = new StringContent(
                     JsonConvert.SerializeObject(article),
                     System.Text.Encoding.UTF8,
                     "application/json"
                 );
 
-            var response = await http.PostAsync(url, content);
+            var response = await _httpClient.PostAsync(url, content);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK) {
@@ -765,8 +767,7 @@ namespace Aistant.KbService {
 
             article.LastVersion++;
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                 .CombineWithUri(_settings.ArticlesEndpoint)
@@ -779,7 +780,7 @@ namespace Aistant.KbService {
                     "application/json"
                 );
 
-            var response = await http.PostAsync(url, content);
+            var response = await _httpClient.PostAsync(url, content);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK) { }
@@ -798,11 +799,6 @@ namespace Aistant.KbService {
 
         private async Task<AistantArticle> PublishArticleAsync(AistantArticle article) {
 
-            if (article.State == ArticleState.Published) {
-                Info($"Article is ALREADY PUBLISHED:  {article.Uri} - {article.IndexTitle} (version: {article.PubVersion})");
-                return article;
-            }
-
             if (string.IsNullOrEmpty(_accessToken)) {
                 await Login();
             }
@@ -815,8 +811,7 @@ namespace Aistant.KbService {
                 throw new KbRequestError("Knowledge base dose not exist: " + _settings.Kb);
             }
 
-            var http = new HttpClient();
-            http.SetBearerToken(_accessToken);
+            _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
                 .CombineWithUri(_settings.ArticlesEndpoint)
@@ -829,7 +824,7 @@ namespace Aistant.KbService {
                     "application/json"
                 );
 
-            var response = await http.PostAsync(url, content);
+            var response = await _httpClient.PostAsync(url, content);
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK) {
@@ -861,6 +856,10 @@ namespace Aistant.KbService {
         }
         #endregion
 
+        public void Dispose()
+        {
+            _httpClient.Dispose();
+        }
     }
 
 

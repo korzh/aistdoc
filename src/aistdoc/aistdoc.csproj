@@ -3,49 +3,46 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+
+    <RootNamespace>aistdoc</RootNamespace>
+    <Product>aistdoc</Product>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.10</AssemblyVersion>
+    <FileVersion>1.1.0.10</FileVersion>
+    <Title>Aistdoc</Title>
+    <Description>
+      A .NET Core global tool that generates documentation (an API reference) and publishes it on the web via Aistant (https://aistant.com) service.
+      Supported languages are .NET/C# and TypeScript. 
+    </Description>
+    <Authors>Sergiy Korzh, Anton Ivanenko</Authors>
+    <Copyright>Copyright 2018-2109 (c) Korzh.com. All rights reserved.</Copyright>
+    <RepositoryUrl>https://github.com/korzh/aistdoc</RepositoryUrl>
+
+    <PackageVersion>1.1.0</PackageVersion>
+    <PackageOutputPath>./dist</PackageOutputPath>
+    <PackageId>Aistant.DocImport</PackageId>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageTags>aistant doc documentation api reference xmldocs comments</PackageTags>
+    <PackageProjectUrl>https://github.com/korzh/aistdoc</PackageProjectUrl>
+    <PackageIconUrl>https://aistant.com/assets/img/logo-small.png</PackageIconUrl>
+    <PackageLicenseUrl>https://github.com/korzh/aistdoc/blob/master/LICENSE</PackageLicenseUrl>
 
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>aistdoc</ToolCommandName>
-    <PackageOutputPath>./dist</PackageOutputPath>
-
-    <PackageId>Aistant.DocImport</PackageId>
-    <PackageVersion>1.0.3</PackageVersion>
-    <Authors>Aistant</Authors>
-    <Description></Description>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes></PackageReleaseNotes>
-    <Copyright>Copyright 2018 (c) Aistant. All rights reserved.</Copyright>
-    <PackageTags>aistant doc documentation xmldoc xml</PackageTags>
-
-    <RootNamespace>aistdoc</RootNamespace>
-
-    <Product>aistdoc</Product>
-
-    <Version>1.0.3</Version>
-
-    <PackageProjectUrl>https://aistant.com</PackageProjectUrl>
-
-    <PackageIconUrl>https://aistant.com/assets/img/logo-small.png</PackageIconUrl>
-
-    <AssemblyVersion>1.0.3.7</AssemblyVersion>
-
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-
-    <FileVersion>1.0.3.7</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\config.json" />
+    <None Remove="Resources\config-csharp.json" />
+    <None Remove="Resources\config-typescript.json" />
     <None Remove="Resources\help.txt" />
-  </ItemGroup>
+  </ItemGroup>  
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\config.json" />
+    <EmbeddedResource Include="Resources\config-csharp.json" />
+    <EmbeddedResource Include="Resources\config-typescript.json" />
     <EmbeddedResource Include="Resources\help.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="MarkdownGenerator\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -59,11 +56,5 @@
   <ItemGroup>
     <ProjectReference Include="..\AistantKbService\KbService.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Update="aistdoc.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
+  
 </Project>

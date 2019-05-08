@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace aistdoc 
 {
 
-    internal static class Beautifier {
+    internal static class CSharpBeautifier {
 
         public static string BeautifyType(Type t, bool isFull = false) {
             if (t == null) return "";

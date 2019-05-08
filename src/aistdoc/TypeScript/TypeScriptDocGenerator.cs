@@ -494,7 +494,7 @@ namespace aistdoc
 
         private void BuildContent(MarkdownBuilder mb, TypeScriptVariable variable)
         {
-            mb.Header(4, MarkdownBuilder.MarkdownCodeQuote(variable.IsConst ? "const" : variable.IsLet ? "let" : "var") + " " +  variable.Name);
+            mb.Header(3, MarkdownBuilder.MarkdownCodeQuote(variable.IsConst ? "const" : variable.IsLet ? "let" : "var") + " " +  variable.Name);
             mb.AppendLine();
             if (!string.IsNullOrEmpty(variable.Comment?.ShortText)) {
                 mb.AppendLine(variable.Comment.ShortText);
@@ -593,7 +593,7 @@ namespace aistdoc
 
         private void BuildContent(MarkdownBuilder mb, TypeScriptMethod method)
         {
-            mb.Header(4, method.Name);
+            mb.Header(3, method.Name);
 
             if (!string.IsNullOrEmpty(method.Signature.Comment?.ShortText)) {
                 mb.AppendLine(method.Signature.Comment.ShortText);
@@ -619,7 +619,7 @@ namespace aistdoc
 
         private void BuildParameters(MarkdownBuilder mb, List<TypeScriptParameter> parameters) {
             if (parameters.Count > 0) {
-                mb.Header(5, "Parameters:");
+                mb.Header(4, "Parameters:");
 
                 foreach (var param in parameters)
                 {
@@ -662,7 +662,7 @@ namespace aistdoc
 
         private void BuildContent(MarkdownBuilder mb, TypeScriptProperty property)
         {
-            mb.Header(4, property.Name);
+            mb.Header(3, property.Name);
 
             mb.AppendLine();
             if (!string.IsNullOrEmpty(property.Comment?.ShortText)) {
@@ -687,7 +687,7 @@ namespace aistdoc
         {
             if (comment != null) {
                 if (comment.Tags.TryGetValue("example", out var text)) {
-                    mb.Header(5, "Example");
+                    mb.Header(4, "Example: ");
                     mb.Code("typescript", text);
                 }
             }

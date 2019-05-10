@@ -12,8 +12,7 @@
     <FileVersion>1.1.0.10</FileVersion>
     <Title>Aistdoc</Title>
     <Description>
-      A .NET Core global tool that generates documentation (an API reference) and publishes it on the web via Aistant (https://aistant.com) service.
-      Supported languages are .NET/C# and TypeScript. 
+      A .NET Core global tool that generates documentation (an API reference) for your code and publishes it on the web via Aistant (https://aistant.com) service. Supported languages are .NET/C# and TypeScript. 
     </Description>
     <Authors>Sergiy Korzh, Anton Ivanenko</Authors>
     <Copyright>Copyright 2018-2109 (c) Korzh.com. All rights reserved.</Copyright>

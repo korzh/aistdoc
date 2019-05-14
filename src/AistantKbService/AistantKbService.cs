@@ -162,7 +162,7 @@ namespace Aistant.KbService {
                                        : UpdateLastVersionAsync(_mainSection).Result;
                     }
                     else {
-                        Info("Section '" + _mainSection.Title + "'EXISTS with such content in Aistant");
+                        Info($"Section [{_mainSection.Title}] already EXISTS");
                     }                   
                 }
 
@@ -248,7 +248,7 @@ namespace Aistant.KbService {
                         : await UpdateLastVersionAsync(article);
                 }
                 else {
-                    Info("Article '" + article.Title + "'EXISTS with such content in Aistant");
+                    Info($"Article [{article.Title}] already EXISTS");
                 }
             }
 
@@ -318,7 +318,7 @@ namespace Aistant.KbService {
                                        : UpdateLastVersionAsync(currentSection).Result;
                     }
                     else {
-                        Info("Section '" + currentSection.Title + "'EXISTS with such content in Aistant");
+                        Info($"Section [{currentSection.Title}] already EXISTS");
                     }
 
                 }

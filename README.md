@@ -12,7 +12,7 @@ Main AistDoc features:
  
  2. It generates Markdown (or HTML) files which represent the full reference of your API (one file for each class, interface or enum). 
  If your code contains [XML documentation](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/xmldoc/xml-documentation-comments) (for .NET projects) or [TypeDoc](https://typedoc.org/) (for TypeScript) comments - then those comments will be added to the generated articles as well.     
- __NB__:For TypeScript projects, you will need to process your code with TypeDoc tool first. 
+ __NB__: For TypeScript projects, you will also need to process your code with TypeDoc tool first. 
  
  3. It publishes the documentation generated on step #2 on the Web using [Aistant](https://aistant.com) service as a hosting platform.
  
@@ -33,7 +33,7 @@ To update it to the latest version, if it was installed previously, use:
 dotnet tool update -g Aistant.DocImport
 ```
 
-Of course you need [.NET Core SDK](https://dotnet.microsoft.com/download) (version 2.1 or higher) be installed on your computer first.
+__NB__: Of course you need [.NET Core SDK](https://dotnet.microsoft.com/download) (version 2.1 or higher) be installed on your computer (Linux, Windows or Mac) first.
 
 
 ## Tutorials

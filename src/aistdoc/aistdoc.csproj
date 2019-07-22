@@ -11,9 +11,8 @@
     <AssemblyVersion>1.2.0.1</AssemblyVersion>
     <FileVersion>1.2.0.1</FileVersion>
     <Title>Aistdoc</Title>
-    <Description>
-      A .NET Core global tool that generates documentation (an API reference) for your code and publishes it on the web via Aistant (https://aistant.com) service. Supported languages are .NET/C# and TypeScript. 
-    </Description>
+    <Description>A .NET Core global tool that generates documentation (an API reference) for your code and publishes it on the web via Aistant (https://aistant.com) service. Supported languages are .NET/C# and TypeScript. 
+</Description>
     <Authors>Sergiy Korzh, Anton Ivanenko</Authors>
     <Copyright>Copyright 2018-2109 (c) Korzh.com. All rights reserved.</Copyright>
     <RepositoryUrl>https://github.com/korzh/aistdoc</RepositoryUrl>
@@ -26,10 +25,11 @@
     <PackageTags>aistant doc documentation api reference xmldocs comments</PackageTags>
     <PackageProjectUrl>https://github.com/korzh/aistdoc</PackageProjectUrl>
     <PackageIconUrl>https://aistant.com/assets/img/logo-small.png</PackageIconUrl>
-    <PackageLicenseUrl>https://github.com/korzh/aistdoc/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>aistdoc</ToolCommandName>
+    <Company>Korzh.com</Company>
   </PropertyGroup>
 
   <ItemGroup>

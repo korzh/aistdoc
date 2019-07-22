@@ -75,7 +75,7 @@ namespace aistdoc
                     generator = new TypeScriptDocGenerator(configuration);
                 }
                 else {
-                    generator = new CSharpDocGenerator(configuration, _outputPath);
+                    generator = new CSharpDocGenerator(configuration, logger,  _outputPath);
                 }
 
                 var articleCount = generator.Generate(saver);

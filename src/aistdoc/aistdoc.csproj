@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <RootNamespace>aistdoc</RootNamespace>
     <Product>aistdoc</Product>
-    <Version>1.1.0</Version>
-    <AssemblyVersion>1.1.0.10</AssemblyVersion>
-    <FileVersion>1.1.0.10</FileVersion>
+    <Version>1.2.0</Version>
+    <AssemblyVersion>1.2.0.1</AssemblyVersion>
+    <FileVersion>1.2.0.1</FileVersion>
     <Title>Aistdoc</Title>
     <Description>
       A .NET Core global tool that generates documentation (an API reference) for your code and publishes it on the web via Aistant (https://aistant.com) service. Supported languages are .NET/C# and TypeScript. 
@@ -18,7 +18,7 @@
     <Copyright>Copyright 2018-2109 (c) Korzh.com. All rights reserved.</Copyright>
     <RepositoryUrl>https://github.com/korzh/aistdoc</RepositoryUrl>
 
-    <PackageVersion>1.1.0</PackageVersion>
+    <PackageVersion>1.2.0</PackageVersion>
     <PackageOutputPath>./dist</PackageOutputPath>
     <PackageId>Aistant.DocImport</PackageId>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -45,11 +45,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.2.4" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>
 
   <ItemGroup>

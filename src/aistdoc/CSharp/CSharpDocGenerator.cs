@@ -6,45 +6,56 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 using Aistant.KbService;
+
 
 namespace aistdoc
 {
     internal class CSharpDocGenerator : IDocGenerator
     {
-
-        private readonly string _nameSpaceRegex;
+        private readonly string _fileRegexPattern;
+        private readonly string _nameSpaceRegexPattern;
         private readonly string _outputPath;
         private readonly AistantSettings _aistantSettings;
         private readonly List<MarkdownableSharpType> _types = new List<MarkdownableSharpType>();
-        public CSharpDocGenerator(IConfiguration configuration, string outputPath = null) {
+        private readonly ILogger _logger;
+
+        private readonly string _srcPath;
+
+
+        public CSharpDocGenerator(IConfiguration configuration, ILogger logger, string outputPath = null)
+        {
             _outputPath = outputPath;
             _aistantSettings = configuration.GetSection("aistant").Get<AistantSettings>();
-            var path = configuration.GetSection("source:path").Get<string>();
 
-            var fileRegexPattern = configuration.GetSection("source:filter:assembly").Get<string>();
-            Regex fileRegex = null;
-            if (!string.IsNullOrEmpty(fileRegexPattern))
-            {
-                fileRegex = new Regex(fileRegexPattern);
-            }
+            _srcPath = Path.GetFullPath(configuration.GetSection("source:path").Get<string>());
 
-            _nameSpaceRegex = configuration.GetSection("source:filter:namespace").Get<string>();
+            _fileRegexPattern = configuration.GetSection("source:filter:assembly").Get<string>();
+
+            _nameSpaceRegexPattern = configuration.GetSection("source:filter:namespace").Get<string>();
+
+            _logger = logger;
+        }
+
+
+        private void LoadLibraryTypes()
+        {
+            Regex fileRegex = (!string.IsNullOrEmpty(_fileRegexPattern)) 
+                    ? new Regex(_fileRegexPattern) 
+                    : null;
 
             //Finds all dll files with current pattern
             Func<string, bool> isFileToProcess = (s) => {
 
-                if (!s.EndsWith(".dll"))
-                {
+                if (!s.EndsWith(".dll")) {
                     return false;
                 }
 
-                if (fileRegex != null)
-                {
+                if (fileRegex != null) {
                     var fileName = s.Substring(s.LastIndexOf("\\") + 1);
-                    if (!fileRegex.IsMatch(fileName))
-                    {
+                    if (!fileRegex.IsMatch(fileName)) {
                         return false;
                     }
                 }
@@ -52,15 +63,18 @@ namespace aistdoc
                 return true;
             };
 
-            var files = Directory.GetFiles(path).Where(isFileToProcess).ToList();
-            foreach (var file in files)
-            {
-                _types.AddRange(MarkdownCSharpGenerator.Load(file, _nameSpaceRegex));
+            var assemblyFiles = Directory.GetFiles(_srcPath).Where(isFileToProcess).ToList();
+            foreach (var assemblyFilePath in assemblyFiles) {
+                _logger.LogInformation($"Loading assembly {assemblyFilePath}...");
+                _types.AddRange(MarkdownCSharpGenerator.Load(assemblyFilePath, _nameSpaceRegexPattern, _logger));
             }
         }
 
         public int Generate(IArticleSaver saver)
         {
+            _logger?.LogInformation($"Processing assemblies in {_srcPath}...");
+            LoadLibraryTypes();
+
             var dest = Directory.GetCurrentDirectory();
             int articleCount = 0;
             foreach (var g in _types.GroupBy(x => x.Namespace).OrderBy(x => x.Key))
@@ -76,7 +90,6 @@ namespace aistdoc
 
                     string itemString = item.ToString();
                     string itemSummary = item.GetSummary();
-
 
                     bool ok = saver.SaveArticle(new ArticleSaveModel
                     {

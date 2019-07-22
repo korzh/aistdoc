@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -121,7 +122,7 @@ namespace aistdoc
                 .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any())
                 .ToArray();
         }
-        void BuildTable<T>(MarkdownBuilder mb, string label, T[] array, IEnumerable<XmlDocumentComment> docs, Func<T, string> type, Func<T, string> name, Func<T, string> finalName) {
+        void BuildTable<T>(MarkdownBuilder mb, string label, T[] array, IEnumerable<XmlDocumentComment> docs, Func<T, string> getTypeNameFunc, Func<T, string> getFieldNameFunc, Func<T, string> getFinalNameFunc) {
             if (array.Any()) {
                 mb.AppendLine("### " + label);
                 mb.AppendLine();
@@ -132,12 +133,19 @@ namespace aistdoc
 
                // IEnumerable<T> seq = array;
                 if (!this._type.IsEnum) {
-                    array = array.OrderBy(x => name(x)).ToArray();
+                    array = array.OrderBy(x => getFieldNameFunc(x)).ToArray();
                 }
 
                 var data = array.Select(item2 => {
-                    var summary = docs.FirstOrDefault(x => x.MemberName == name(item2))?.Summary ?? "";
-                    return new[] { MarkdownBuilder.MarkdownCodeQuote(type(item2)), finalName(item2), summary };
+                    var summary = docs.FirstOrDefault(x => x.MemberName == getFieldNameFunc(item2))?.Summary ?? "";
+                    var typeName = "";
+                    try {
+                        typeName = getTypeNameFunc(item2);
+                    }
+                    catch {
+                        typeName = "[Unknown type]";
+                    }
+                    return new[] { MarkdownBuilder.MarkdownCodeQuote(typeName), getFinalNameFunc(item2), summary };
 
                 }); 
 
@@ -224,7 +232,7 @@ namespace aistdoc
 
 
     internal static class MarkdownCSharpGenerator {
-        public static MarkdownableSharpType[] Load(string dllPath, string pattern) {
+        public static MarkdownableSharpType[] Load(string dllPath, string pattern, ILogger logger) {
             var xmlPath = Path.Combine(Directory.GetParent(dllPath).FullName, Path.GetFileNameWithoutExtension(dllPath) + ".xml");
 
             XmlDocumentComment[] comments = new XmlDocumentComment[0];
@@ -233,28 +241,29 @@ namespace aistdoc
             }
             var commentsLookup = comments.ToLookup(x => x.ClassName);
 
-            var assemblies = new List<Assembly>(new[] { Assembly.LoadFrom(dllPath) });
+            try {
+                var assembly = Assembly.LoadFrom(dllPath);
 
-            var markdownableTypes = assemblies
-                .SelectMany(x => {
-                    try {
-                        return x.GetTypes();
-                    }
-                    catch (ReflectionTypeLoadException ex) {
-                        return ex.Types.Where(t => t != null);
-                    }
-                    catch {
-                        return Type.EmptyTypes;
-                    }
-                })
-                .Where(x => x != null)
-                .Where(x => x.IsPublic && !typeof(Delegate).IsAssignableFrom(x) && !x.GetCustomAttributes<ObsoleteAttribute>().Any())
-                .Where(x => IsRequiredNamespace(x, pattern))
-                .Select(x => new MarkdownableSharpType(x, commentsLookup))
-                .ToArray();
+                Type[] types = Type.EmptyTypes;
 
+                try {
+                    types = assembly.GetTypes();
+                }
+                catch (ReflectionTypeLoadException ex) {
+                    types = ex.Types.Where(t => t != null).ToArray();
+                }
 
-            return markdownableTypes;
+                return types
+                        .Where(x => x != null)
+                        .Where(x => x.IsPublic && !typeof(Delegate).IsAssignableFrom(x) && !x.GetCustomAttributes<ObsoleteAttribute>().Any())
+                        .Where(x => IsRequiredNamespace(x, pattern))
+                        .Select(x => new MarkdownableSharpType(x, commentsLookup))
+                        .ToArray();
+            }
+            catch (Exception ex) {
+                logger.LogWarning("Could not load assembly. \n" + ex.Message);
+                return Array.Empty<MarkdownableSharpType>();
+            }
         }
 
         static bool IsRequiredNamespace(Type type, string pattern) {

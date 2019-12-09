@@ -46,17 +46,12 @@ namespace Aistant.KbService {
 #if RELEASE
         [JsonIgnore]
 #endif
-        public string KbHost { get; set; } = "1.0/knowledge-base";
+        public string KbHost { get; set; } = "1.0/knowledge-bases";
 
 #if RELEASE
         [JsonIgnore]
 #endif
         public string DocsEndpoint { get; set; } = "1.0/docs";
-
-#if RELEASE
-        [JsonIgnore]
-#endif
-        public string PublicEndpoint { get; set; } = "1.0/public";
 
 #if RELEASE
         [JsonIgnore]
@@ -457,10 +452,11 @@ namespace Aistant.KbService {
             _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
-                        .CombineWithUri(_settings.PublicEndpoint)
-                        .CombineWithUri(_settings.Team)
-                        .CombineWithUri("kbs")
+                        .CombineWithUri(_settings.KbHost)
+                        .CombineWithUri("uri")
                         .CombineWithUri(uri);
+
+            Console.WriteLine("Url: " + url);
 
             var response = await _httpClient.GetAsync(url);
             var responseStr = await response.Content.ReadAsStringAsync();

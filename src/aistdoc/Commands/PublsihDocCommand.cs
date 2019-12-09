@@ -95,6 +95,8 @@ namespace aistdoc
             catch (Exception ex) {
                 logger.LogCritical(ex.Message);
 
+                Thread.Sleep(100);
+
                 return -1;
             }
           

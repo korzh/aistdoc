@@ -56,11 +56,6 @@ namespace Aistant.KbService {
 #if RELEASE
         [JsonIgnore]
 #endif
-        public string PublicEndpoint { get; set; } = "1.0/public";
-
-#if RELEASE
-        [JsonIgnore]
-#endif
         public string ClientId { get; set; } = "aistant-client";
 
 #if RELEASE
@@ -457,9 +452,8 @@ namespace Aistant.KbService {
             _httpClient.SetBearerToken(_accessToken);
 
             var url = _settings.ApiHost
-                        .CombineWithUri(_settings.PublicEndpoint)
-                        .CombineWithUri(_settings.Team)
-                        .CombineWithUri("kbs")
+                        .CombineWithUri(_settings.KbHost)
+                        .CombineWithUri("uri")
                         .CombineWithUri(uri);
 
             var response = await _httpClient.GetAsync(url);

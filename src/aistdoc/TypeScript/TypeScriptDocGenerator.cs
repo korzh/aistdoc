@@ -34,6 +34,29 @@ namespace aistdoc
             return articleCount;
         }
 
+        private ITypeScriptContract GetClassOrInterface(string name) 
+        {
+            foreach (var package in _lib.Packages) {
+                foreach (var @interface in package.Interfaces) {
+                    if (@interface.Name.Equals(name)) {
+                        return @interface;
+                    }
+                }
+                foreach (var @class in package.Classes) {
+                    if (@class.Name.Equals(name)) {
+                        return @class;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private bool ContainsClassOrInterface(string name) 
+        {
+            return GetClassOrInterface(name) != null;
+        }
+
         private int ProcessModule(ITypeScriptModule module, IArticleSaver saver, string parentSectionUrl = null)
         {
             var articleCount = 0;
@@ -48,7 +71,15 @@ namespace aistdoc
             var variables = module.Variables.Where(v => v.IsExported).ToList();
             var nspaces = module.Namespaces.Where(n => n.IsExported).ToList();
 
-            if (enums.Any() || classes.Any() || interfaces.Any() || functions.Any() || variables.Any())
+            //support extention interfaces
+            var extensionInterfaces = module.Namespaces.Where(n => _lib.Packages.Any(p => n.Name.Contains(p.Name)))
+                                                       .SelectMany(n => n.Interfaces)
+                                                       .ToList();
+
+            extensionInterfaces = extensionInterfaces.Where(i => ContainsClassOrInterface(i.Name))
+                                                     .ToList();
+
+            if (enums.Any() || classes.Any() || interfaces.Any() || functions.Any() || variables.Any() || extensionInterfaces.Any())
             {
 
                 var parentSection = new ArticleSaveModel
@@ -183,8 +214,45 @@ namespace aistdoc
                         if (saver.SaveArticle(articleSaveModel))
                             articleCount++;
                     }
+                }
+
+                if (extensionInterfaces.Any()) {
+
+                    var section = new ArticleSaveModel
+                    {
+                        SectionTitle = sectionName,
+                        SectionUri = fullSectionUrl,
+                        ArticleTitle = "Extensions",
+                        ArticleUri = "extensions",
+                        IsSection = true
+                    };
+
+                    //Create section for extensions
+                    if (saver.SaveArticle(section)) {
+                        articleCount++;
+                    }
 
 
+                    //Processing extensions
+                    foreach (var extensionInterface in extensionInterfaces)
+                    {
+                        var itemName = extensionInterface.Name + " extensions";
+                        var itemSummary = extensionInterface.Comment?.ShortText;
+                        var itemContent = BuildContent(extensionInterface, extension: true);
+
+                        var articleSaveModel = new ArticleSaveModel
+                        {
+                            SectionTitle = section.ArticleTitle,
+                            SectionUri = fullSectionUrl.CombineWithUri(section.ArticleUri),
+                            ArticleTitle = itemName,
+                            ArticleUri = itemName.MakeUriFromString(),
+                            ArticleExcerpt = itemSummary,
+                            ArticleBody = itemContent
+                        };
+
+                        if (saver.SaveArticle(articleSaveModel))
+                            articleCount++;
+                    }
                 }
 
 
@@ -509,7 +577,7 @@ namespace aistdoc
             mb.AppendSeparateLine();
         }
 
-        private string BuildContent(TypeScriptInterface @interface)
+        private string BuildContent(TypeScriptInterface @interface, bool extension = false)
         {
 
             var mb = new MarkdownBuilder();
@@ -518,9 +586,9 @@ namespace aistdoc
                 mb.AppendLine();
             }
 
-
             BuildExample(mb, @interface.Comment);
 
+            if (!extension)
             BuildExtendedTypes(mb, @interface);
 
             BuildIndex(mb, @interface);

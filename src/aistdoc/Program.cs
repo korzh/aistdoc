@@ -1,17 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Threading;
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 using McMaster.Extensions.CommandLineUtils;
-
-using Aistant.KbService;
 
 namespace aistdoc
 {

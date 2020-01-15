@@ -238,7 +238,8 @@ namespace aistdoc
                     {
                         var itemName = extensionInterface.Name + " extensions";
                         var itemSummary = extensionInterface.Comment?.ShortText;
-                        var itemContent = BuildContent(extensionInterface, extension: true);
+                        var articleUrl = section.ArticleUri.CombineWithUri(itemName.MakeUriFromString());
+                        var itemContent = BuildContent(extensionInterface, extension: true, articleUrl: articleUrl);
 
                         var articleSaveModel = new ArticleSaveModel
                         {
@@ -329,16 +330,20 @@ namespace aistdoc
                 mb.AppendSeparateLine();
                 mb.Header(4, "constructor");
                 mb.AppendLine();
-                if (!string.IsNullOrEmpty(@class.Constructor.Signature.Comment?.ShortText)) {
-                    mb.AppendLine(@class.Constructor.Signature.Comment.ShortText);
+
+                if (!string.IsNullOrEmpty(@class.Constructor.Signatures.First().Comment?.ShortText)) {
+                    mb.AppendLine(@class.Constructor.Signatures.First().Comment.ShortText);
                 }
 
-                mb.AppendLine("⊕ " + @class.Constructor.Signature.Format(_lib));
-                mb.AppendLine();
+                foreach (var signature in @class.Constructor.Signatures) {
+                    mb.AppendLine("⊕ " + signature.Format(_lib));
+                    mb.AppendLine();
+                }
 
-                BuildParameters(mb, @class.Constructor.Signature.Parameters);
+    
+                BuildParameters(mb, @class.Constructor.Signatures.Last().Parameters);
 
-                BuildExample(mb, @class.Constructor.Signature.Comment);
+                BuildExample(mb, @class.Constructor.Signatures.First().Comment);
 
                 mb.AppendSeparateLine();
             }
@@ -512,26 +517,30 @@ namespace aistdoc
         {
             mb.Header(4, function.Name);
             mb.AppendLine();
-            if (!string.IsNullOrEmpty(function.Signature.Comment?.ShortText)) {
-                mb.AppendLine(function.Signature.Comment.ShortText);
+            if (!string.IsNullOrEmpty(function.Signatures.First().Comment?.ShortText)) {
+                mb.AppendLine(function.Signatures.First().Comment.ShortText);
                 mb.AppendLine();
             }
 
-            mb.AppendLine(function.Format(_lib));
+            foreach (var signature in function.Signatures) {
+                mb.AppendLine("▸ " + signature.Format(_lib));
 
-            mb.AppendLine();
+                mb.AppendLine();
 
-            BuildParameters(mb, function.Signature.Parameters); 
-        
-            mb.Append($"**Returns** " + function.Signature.Type.Format(_lib));
-            if (!string.IsNullOrEmpty(function.Signature.Comment?.Returns)) {
-                mb.Append(" - " + function.Signature.Comment.Returns);
+                BuildParameters(mb, signature.Parameters);
+
+                mb.AppendLine();
+
+                mb.Append($"**Returns** " + signature.Type.Format(_lib));
+                if (!string.IsNullOrEmpty(signature.Comment?.Returns)) {
+                    mb.Append(" - " + signature.Comment.Returns);
+                }
+
+                mb.AppendLine();
+
             }
 
-
-            mb.AppendLine();
-
-            BuildExample(mb, function.Signature.Comment);
+            BuildExample(mb, function.Signatures.First().Comment);
 
             mb.AppendLine();
             mb.AppendSeparateLine();
@@ -577,7 +586,7 @@ namespace aistdoc
             mb.AppendSeparateLine();
         }
 
-        private string BuildContent(TypeScriptInterface @interface, bool extension = false)
+        private string BuildContent(TypeScriptInterface @interface, bool extension = false, string articleUrl = null)
         {
 
             var mb = new MarkdownBuilder();
@@ -589,9 +598,9 @@ namespace aistdoc
             BuildExample(mb, @interface.Comment);
 
             if (!extension)
-            BuildExtendedTypes(mb, @interface);
+                BuildExtendedTypes(mb, @interface);
 
-            BuildIndex(mb, @interface);
+            BuildIndex(mb, @interface, extension, articleUrl);
 
             if (@interface.Properties.Any()) {
                 mb.Header(2, "Properties");
@@ -632,9 +641,15 @@ namespace aistdoc
             }
         }
 
-        private void BuildIndex(MarkdownBuilder mb, TypeScriptInterface @interface)
+        private void BuildIndex(MarkdownBuilder mb, TypeScriptInterface @interface, bool extension, string articleUrl)
         {
             var path = @interface.GetPath().MakeUriFromString();
+            if (extension) {
+                path = @interface.Module.Module.GetPath().MakeUriFromString();
+                if (!string.IsNullOrEmpty(articleUrl)) {
+                    path = path.CombineWithUri(articleUrl);
+                }
+            }
 
             mb.Header(2, "Index");
             if (@interface.Properties.Any()) {
@@ -663,24 +678,29 @@ namespace aistdoc
         {
             mb.Header(3, method.Name);
 
-            if (!string.IsNullOrEmpty(method.Signature.Comment?.ShortText)) {
-                mb.AppendLine(method.Signature.Comment.ShortText);
+            if (!string.IsNullOrEmpty(method.Signatures.First().Comment?.ShortText)) {
+                mb.AppendLine(method.Signatures.First().Comment.ShortText);
                 mb.AppendLine();
             }
 
-            mb.AppendLine(method.Format(_lib));
-            mb.AppendLine();
+            foreach (var signature in method.Signatures) {
+                mb.AppendLine("▸ " + signature.Format(_lib));
 
-            BuildParameters(mb, method.Signature.Parameters);
+                mb.AppendLine();
 
-            mb.AppendLine();
-            mb.Append($"**Returns** " + method.Signature.Type.Format(_lib));
-            if (!string.IsNullOrEmpty(method.Signature.Comment?.Returns)) {
-                mb.Append(" - " + method.Signature.Comment.Returns);
+                BuildParameters(mb, signature.Parameters);
+
+                mb.AppendLine();
+
+                mb.Append($"**Returns** " + signature.Type.Format(_lib));
+                if (!string.IsNullOrEmpty(signature.Comment?.Returns)) {
+                    mb.Append(" - " + signature.Comment.Returns);
+                }
+
+                mb.AppendLine();
             }
-            mb.AppendLine();
 
-            BuildExample(mb, method.Signature.Comment);
+            BuildExample(mb, method.Signatures.First().Comment);
 
             mb.AppendSeparateLine();
         }

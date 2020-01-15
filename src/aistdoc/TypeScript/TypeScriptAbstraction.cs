@@ -1,7 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
+﻿using System;
+using System.Text;
 using System.Linq;
-using System;
+using System.Collections.Generic;
+
 
 namespace aistdoc
 {
@@ -13,6 +14,8 @@ namespace aistdoc
     public interface ITypeScriptModule
     {
         string BeautifulName { get; }
+
+        ITypeScriptModule Module { get; }
 
         TypeScriptComment Comment {get; }
         bool IsExported { get; }
@@ -220,10 +223,15 @@ namespace aistdoc
         public bool IsPrivate { get; set; }
         public bool IsOptional { get; set; }
         public bool IsStatic { get; set; }
-        public TypeScriptSignature Signature { get; set; } = new TypeScriptSignature();
+        public List<TypeScriptSignature> Signatures { get; set; } = new List<TypeScriptSignature>();
 
         public string Format(ITypeScriptLibrary lib, FormatMode mode = FormatMode.Markdown) {
-            return "▸ " + Signature.Format(lib);
+            var sb = new StringBuilder();
+            foreach (var signature in Signatures) {
+                sb.AppendLine("▸ " + signature.Format(lib));
+                sb.AppendLine();
+            }
+            return sb.ToString();
         }
 
     }
@@ -315,11 +323,16 @@ namespace aistdoc
         public ITypeScriptModule Module { get; private set; }
         public TypeScriptComment Comment { get; set; }
         public bool IsExported { get; set; }
-        public TypeScriptSignature Signature { get; set; } = new TypeScriptSignature();
+        public List<TypeScriptSignature> Signatures { get; set; } = new List<TypeScriptSignature>();
 
         public string Format(ITypeScriptLibrary lib, FormatMode mode = FormatMode.Markdown)
         {
-            return "▸ " + Signature.Format(lib);
+            var sb = new StringBuilder();
+            foreach (var singature in Signatures) {
+                sb.AppendLine("▸ " + singature.Format(lib));
+            }
+
+            return sb.ToString();
         }
 
         public TypeScriptFunction(ITypeScriptModule module)
@@ -453,6 +466,9 @@ namespace aistdoc
     public class TypeScriptPackage: ITypeScriptModule
     {
         public string Name { get; set; }
+        public string Version { get; set; }
+
+        public ITypeScriptModule Module => null;
         public string BeautifulName => Name + " package";
         public TypeScriptComment Comment { get; set; }
         public bool IsExported { get; } = true;

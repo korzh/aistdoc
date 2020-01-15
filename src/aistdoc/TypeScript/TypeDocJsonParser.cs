@@ -59,7 +59,15 @@ namespace aistdoc
 
             if (jobject.TryGetValue("name", out var nameToken))
             {
-                package.Name = nameToken.ToString();
+                var nameWithVersion = nameToken.ToString();
+                var indexOf = nameWithVersion.IndexOf(" - ");
+                if (indexOf >= 0) {
+                    package.Name = nameWithVersion.Substring(0, indexOf);
+                    package.Version = nameWithVersion.Substring(indexOf + 3);
+                }
+                else {
+                    package.Name = nameToken.ToString();
+                }
             }
 
 
@@ -229,7 +237,7 @@ namespace aistdoc
             }
 
             if (jobject.TryGetValue("signatures", out var signatureToken)) {
-                LoadFromJObject(function.Signature, signatureToken.ToObject<List<JObject>>().First());
+                LoadFromJObject(function.Signatures, signatureToken.ToObject<List<JObject>>());
             }
 
             if (jobject.TryGetValue("comment", out var commentToken)) {
@@ -481,7 +489,16 @@ namespace aistdoc
 
             }
             if (jobject.TryGetValue("signatures", out var signatureToken)) {
-                LoadFromJObject(method.Signature, signatureToken.ToObject<List<JObject>>().First());
+                LoadFromJObject(method.Signatures, signatureToken.ToObject<List<JObject>>());
+            }
+        }
+
+        private void LoadFromJObject(List<TypeScriptSignature> signatures, List<JObject> objects)
+        {
+            foreach (var obj in objects) {
+                var signature = new TypeScriptSignature();
+                LoadFromJObject(signature, obj);
+                signatures.Add(signature);
             }
         }
 

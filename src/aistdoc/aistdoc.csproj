@@ -17,7 +17,7 @@
     <Copyright>Copyright 2018-2109 (c) Korzh.com. All rights reserved.</Copyright>
     <RepositoryUrl>https://github.com/korzh/aistdoc</RepositoryUrl>
 
-    <PackageVersion>2.0.0-rc2</PackageVersion>
+    <PackageVersion>2.0.0-rc3</PackageVersion>
     <PackageOutputPath>./dist</PackageOutputPath>
     <PackageId>Aistant.DocImport</PackageId>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>

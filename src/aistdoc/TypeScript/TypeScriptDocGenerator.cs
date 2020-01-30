@@ -87,7 +87,7 @@ namespace aistdoc
                     SectionUri = parentSectionUrl,
                     ArticleTitle = sectionName,
                     ArticleUri = sectionUrl,
-                    ArticleExcerpt = module.Comment?.ShortText,
+                    ArticleExcerpt = module.Comment?.ShortText ?? " ",
                     ArticleBody = module.Comment?.ShortText ?? "",
                     IsSection = true
                 };
@@ -158,7 +158,16 @@ namespace aistdoc
                     //Processing Interfaces
                     foreach (var @interface in interfaces) {
                         var itemName = @interface.BeautifulName;
+
                         var itemSummary = @interface.Comment?.ShortText;
+                        if (string.IsNullOrEmpty(itemSummary)) {
+                            itemSummary = @interface.BuildSignificantComment();
+                            if (string.IsNullOrEmpty(itemSummary)) {
+                                //prevent autoexcerpt
+                                itemSummary = " ";
+                            }
+                        }
+
                         var itemContent = BuildContent(@interface);
 
                         var articleSaveModel = new ArticleSaveModel
@@ -198,7 +207,16 @@ namespace aistdoc
                     //Processing Classes
                     foreach (var @class in classes) {
                         var itemName = @class.BeautifulName;
+
                         var itemSummary = @class.Comment?.ShortText;
+                        if (string.IsNullOrEmpty(itemSummary)) {
+                            itemSummary = @class.BuildSignificantComment();
+                            if (string.IsNullOrEmpty(itemSummary)) {
+                                //prevent autoexcerpt
+                                itemSummary = " ";
+                            }
+                        }
+
                         var itemContent = BuildContent(@class);
 
                         var articleSaveModel = new ArticleSaveModel
@@ -237,7 +255,16 @@ namespace aistdoc
                     foreach (var extensionInterface in extensionInterfaces)
                     {
                         var itemName = extensionInterface.Name + " extensions";
+
                         var itemSummary = extensionInterface.Comment?.ShortText;
+                        if (string.IsNullOrEmpty(itemSummary)) {
+                            itemSummary = extensionInterface.BuildSignificantComment();
+                            if (string.IsNullOrEmpty(itemSummary)) {
+                                //prevent autoexcerpt
+                                itemSummary = " ";
+                            }
+                        }
+
                         var articleUrl = section.ArticleUri.CombineWithUri(itemName.MakeUriFromString());
                         var itemContent = BuildContent(extensionInterface, extension: true, articleUrl: articleUrl);
 
@@ -258,6 +285,9 @@ namespace aistdoc
 
 
                 if (functions.Any()) {
+
+                    var itemSummary = module.Functions.BuildSignificantComment() ?? " ";
+               
                     var articleSaveModel = new ArticleSaveModel
                     {
                         SectionTitle = sectionName,
@@ -272,6 +302,9 @@ namespace aistdoc
                 }
 
                 if (variables.Any()) {
+
+                    var itemSummary = module.Variables.BuildSignificantComment() ?? " ";
+
                     var articleSaveModel = new ArticleSaveModel
                     {
                         SectionTitle = sectionName,

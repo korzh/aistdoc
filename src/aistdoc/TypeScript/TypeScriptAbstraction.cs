@@ -78,12 +78,9 @@ namespace aistdoc
 
     public class FunctionStore : List<TypeScriptFunction>
     {
-        public string BuildSignificantComment()
+        public IEnumerable<TypeScriptFunction> GetSignificantFunctions()
         {
-            var comment = new StringBuilder();
-            comment.AppendLine("<ul>");
 
-            var isEmpty = false;
             foreach (var function in this) {
                 if (!function.IsExported) {
                     continue;
@@ -91,52 +88,34 @@ namespace aistdoc
 
                 foreach (var signature in function.Signatures) {
                     if (signature.Comment != null && signature.Comment.IsSignificant) {
-                        isEmpty = true;
-                        comment.AppendFormat("<li>{0} - {1}</li>", signature.Name, signature.Comment.ShortText ?? "No description");
-                        comment.AppendLine();
+                        yield return function;
                     }
                 }
             }
 
-            comment.AppendLine("/<ul>");
 
-            if (isEmpty) { 
-                return null;
-            }
-
-            return comment.ToString();
+            yield break;
 
         }
     }
 
     public class VariableStore : List<TypeScriptVariable>
     {
-        public string BuildSignificantComment()
-        {
-            var comment = new StringBuilder();
-            comment.AppendLine("<ul>");
 
-            var isEmpty = true;
+        public IEnumerable<TypeScriptVariable> GetSignificantVariables()
+        {
+
             foreach (var variable in this) {
                 if (!variable.IsExported) {
                     continue;
                 }
 
                 if (variable.Comment != null && variable.Comment.IsSignificant) {
-                    isEmpty = false;
-                    comment.AppendFormat("<li>{0} - {1}</li>", variable.Name, variable.Comment.ShortText ?? "No description");
-                    comment.AppendLine();
+                    yield return variable; 
                 }
             }
 
-            comment.AppendLine("/<ul>");
-
-            if (isEmpty) {
-                return null;
-            }
-
-            return comment.ToString();
-
+            yield break;
         }
     }
 
@@ -259,44 +238,36 @@ namespace aistdoc
             return $"{Module.GetPath()}/Interfaces/{BeautifulName}";
         }
 
-        public string BuildSignificantComment()
+        public IEnumerable<TypeScriptProperty> GetSignificantProperties()
         {
-            var comment = new StringBuilder();
-            comment.AppendLine("<ul>");
-
-            bool isEmpty = true;
+           
             foreach (var property in Properties) {
-                if (property.IsPublic && property.Comment != null
+                if (!property.IsPrivate && property.Comment != null
                     && property.Comment.IsSignificant) {
 
-                    isEmpty = false;
-
-                    comment.AppendFormat("<li>{0} - {1}</li>", property.Name, property.Comment.ShortText ?? "No description");
-                    comment.AppendLine();
+                    yield return property;
                 }
             }
 
+            yield break;
+        }
+
+        public IEnumerable<TypeScriptMethod> GetSignificantMethods()
+        {
             foreach (var method in Methods) {
-                if (!method.IsPublic){
+                if (method.IsPrivate) {
                     continue;
                 }
 
                 foreach (var signature in method.Signatures) {
-                    if (signature.Comment != null && signature.Comment.IsSignificant)  {
-
-                        comment.AppendFormat("<li>{0} - {1}</li>", signature.Name, signature.Comment.ShortText ?? "No description");
-                        comment.AppendLine();
+                    if (signature.Comment != null && signature.Comment.IsSignificant) {
+                        yield return method;
                     }
                 }
             }
 
-            comment.AppendLine("/<ul>");
 
-            if (isEmpty) {
-                return null;
-            }
-
-            return comment.ToString();
+            yield break;
         }
 
     }
@@ -368,44 +339,37 @@ namespace aistdoc
             return $"{Module.GetPath()}/Classes/{BeautifulName}";
         }
 
-        public string BuildSignificantComment()
+        public IEnumerable<TypeScriptProperty> GetSignificantProperties()
         {
-            var comment = new StringBuilder();
-            comment.AppendLine("<ul>");
 
-            bool isEmpty = true;
             foreach (var property in Properties) {
-                if (property.IsPublic && property.Comment != null 
+                if (!property.IsPrivate && property.Comment != null
                     && property.Comment.IsSignificant) {
 
-                    isEmpty = false;
-
-                    comment.AppendFormat("<li>{0} - {1}</li>", property.Name, property.Comment.ShortText ?? "No description");
-                    comment.AppendLine();
+                    yield return property;
                 }
             }
 
+            yield break;
+        }
+
+        public IEnumerable<TypeScriptMethod> GetSignificantMethods()
+        {
             foreach (var method in Methods) {
-                if (!method.IsPublic) {
+
+                if (method.IsPrivate) {
                     continue;
                 }
 
-                foreach(var signature in method.Signatures) {
+                foreach (var signature in method.Signatures) {
                     if (signature.Comment != null && signature.Comment.IsSignificant) {
-
-                        comment.AppendFormat("<li>{0} - {1}</li>", signature.Name, signature.Comment.ShortText ?? "No description");
-                        comment.AppendLine();
+                        yield return method;
                     }
                 }
             }
 
-            comment.AppendLine("/<ul>");
 
-            if (isEmpty) {
-                return null;
-            }
-
-            return comment.ToString();
+            yield break;
         }
 
     }

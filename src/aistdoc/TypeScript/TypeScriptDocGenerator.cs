@@ -157,17 +157,9 @@ namespace aistdoc
 
                     //Processing Interfaces
                     foreach (var @interface in interfaces) {
+
                         var itemName = @interface.BeautifulName;
-
-                        var itemSummary = @interface.Comment?.ShortText;
-                        if (string.IsNullOrEmpty(itemSummary)) {
-                            itemSummary = @interface.BuildSignificantComment();
-                            if (string.IsNullOrEmpty(itemSummary)) {
-                                //prevent autoexcerpt
-                                itemSummary = " ";
-                            }
-                        }
-
+                        var itemSummary = GetSummary(@interface, extension: false, articleUrl: null);
                         var itemContent = BuildContent(@interface);
 
                         var articleSaveModel = new ArticleSaveModel
@@ -207,15 +199,7 @@ namespace aistdoc
                     //Processing Classes
                     foreach (var @class in classes) {
                         var itemName = @class.BeautifulName;
-
-                        var itemSummary = @class.Comment?.ShortText;
-                        if (string.IsNullOrEmpty(itemSummary)) {
-                            itemSummary = @class.BuildSignificantComment();
-                            if (string.IsNullOrEmpty(itemSummary)) {
-                                //prevent autoexcerpt
-                                itemSummary = " ";
-                            }
-                        }
+                        var itemSummary = GetSummary(@class);
 
                         var itemContent = BuildContent(@class);
 
@@ -255,17 +239,10 @@ namespace aistdoc
                     foreach (var extensionInterface in extensionInterfaces)
                     {
                         var itemName = extensionInterface.Name + " extensions";
-
-                        var itemSummary = extensionInterface.Comment?.ShortText;
-                        if (string.IsNullOrEmpty(itemSummary)) {
-                            itemSummary = extensionInterface.BuildSignificantComment();
-                            if (string.IsNullOrEmpty(itemSummary)) {
-                                //prevent autoexcerpt
-                                itemSummary = " ";
-                            }
-                        }
-
                         var articleUrl = section.ArticleUri.CombineWithUri(itemName.MakeUriFromString());
+
+                        var itemSummary = GetSummary(extensionInterface, extension: true, articleUrl: articleUrl);
+                        
                         var itemContent = BuildContent(extensionInterface, extension: true, articleUrl: articleUrl);
 
                         var articleSaveModel = new ArticleSaveModel
@@ -286,7 +263,7 @@ namespace aistdoc
 
                 if (functions.Any()) {
 
-                    var itemSummary = module.Functions.BuildSignificantComment() ?? " ";
+                    var itemSummary = GetSummary(module, module.Functions);
                
                     var articleSaveModel = new ArticleSaveModel
                     {
@@ -294,7 +271,8 @@ namespace aistdoc
                         SectionUri = fullSectionUrl,
                         ArticleTitle = "Functions",
                         ArticleUri = "functions",
-                        ArticleBody = BuildContent(functions)
+                        ArticleBody = BuildContent(functions),
+                        ArticleExcerpt = itemSummary
                     };
 
                     if (saver.SaveArticle(articleSaveModel))
@@ -303,7 +281,7 @@ namespace aistdoc
 
                 if (variables.Any()) {
 
-                    var itemSummary = module.Variables.BuildSignificantComment() ?? " ";
+                    var itemSummary = GetSummary(module, module.Variables);
 
                     var articleSaveModel = new ArticleSaveModel
                     {
@@ -311,7 +289,8 @@ namespace aistdoc
                         SectionUri = fullSectionUrl,
                         ArticleTitle = "Variables",
                         ArticleUri = "Variables",
-                        ArticleBody = BuildContent(variables)
+                        ArticleBody = BuildContent(variables),
+                        ArticleExcerpt = itemSummary
                     };
 
                     if (saver.SaveArticle(articleSaveModel))
@@ -322,6 +301,196 @@ namespace aistdoc
             return articleCount;
         }
 
+        private string GetSummary(TypeScriptInterface @interface, bool extension, string articleUrl) 
+        {
+            var itemSummary = @interface.Comment?.ShortText;
+            if (string.IsNullOrEmpty(itemSummary)) {
+                var properties = @interface.GetSignificantProperties();
+                var methods = @interface.GetSignificantMethods();
+
+                if (!properties.Any() && !methods.Any())  {
+                    properties = @interface.Properties.Where(p => !p.IsPrivate).Take(5);
+                    methods = @interface.Methods.Where(m => !m.IsPrivate).Take(5);
+                }
+
+                if (properties.Any() || methods.Any()) {
+                    var path = (!extension) 
+                        ? @interface.GetPath().MakeUriFromString()
+                        : string.IsNullOrEmpty(articleUrl)
+                            ? @interface.Module.Module.GetPath().MakeUriFromString()
+                            : @interface.Module.Module.GetPath().MakeUriFromString().CombineWithUri(articleUrl);
+                   
+                    itemSummary = BuildHTMLList(path, properties, methods);
+                }
+
+                if (string.IsNullOrEmpty(itemSummary)) {
+                    //prevent autoexcerpt
+                    itemSummary = " ";
+                }
+            }
+
+            return itemSummary;
+        }
+
+        private string GetSummary(TypeScriptClass @class)
+        {
+            var itemSummary = @class.Comment?.ShortText;
+            if (string.IsNullOrEmpty(itemSummary)) {
+                var properties = @class.GetSignificantProperties();
+                var methods = @class.GetSignificantMethods();
+
+                if (!properties.Any() && !methods.Any()) {
+                    properties = @class.Properties.Where(p => !p.IsPrivate).Take(5);
+                    methods = @class.Methods.Where(m => !m.IsPrivate).Take(5);
+                }
+
+                if (properties.Any() || methods.Any()) {
+                    itemSummary = BuildHTMLList(@class.GetPath().MakeUriFromString(), properties, methods);
+                }
+
+                if (string.IsNullOrEmpty(itemSummary)) {
+                    //prevent autoexcerpt
+                    itemSummary = " ";
+                }
+            }
+
+            return itemSummary;
+        }
+
+        private string GetSummary(ITypeScriptModule module, FunctionStore funcStore)
+        {
+            //prevent autoexcerpt
+            var itemSummary = " ";
+
+            var functions = funcStore.GetSignificantFunctions();
+            if (!functions.Any()) {
+                functions = funcStore.Where(f => f.IsExported == true).Take(10).ToList();
+            }
+
+            if (functions.Any()) {
+                itemSummary = BuildHTMLList(module.GetPath().MakeUriFromString().CombineWithUri("functions"), functions);
+            }
+
+            return itemSummary;
+        }
+
+        private string GetSummary(ITypeScriptModule module, VariableStore varStore)
+        {
+            //prevent autoexcerpt
+            var itemSummary = " ";
+
+            var varibales = varStore.GetSignificantVariables();
+            if (!varibales.Any()) {
+                varibales = varStore.Where(v => v.IsExported).Take(10);
+            }
+
+            if (varibales.Any())
+            {
+                itemSummary = BuildHTMLList(module.GetPath().MakeUriFromString().CombineWithUri("variables"), varibales);
+            }
+
+            return itemSummary;
+        }
+
+        private string BuildHTMLList(string baseUrl, IEnumerable<TypeScriptProperty> properties, IEnumerable<TypeScriptMethod> methods)
+        {
+           
+            var sb = new StringBuilder();
+            sb.AppendLine("<ul>");
+
+            foreach (var property in properties) {
+
+                sb.AppendLine("<li>");
+
+                sb.AppendFormat("<a href='{0}'>", CombineWithRootUrl(baseUrl.CombineWithUri("#" + property.Name.MakeUriFromString())));
+                sb.Append(property.Name);
+                sb.Append("</a>");
+
+                if (property.Comment != null) {
+                    sb.Append(" - ");
+                    sb.Append(property.Comment.ShortText);
+                }
+
+                sb.AppendLine();
+                sb.AppendLine("</li>");
+            }
+
+            foreach (var method in methods) {
+                var signature = method.Signatures.First();
+
+                sb.AppendLine("<li>");
+
+                sb.AppendFormat("<a href='{0}'>", CombineWithRootUrl(baseUrl.CombineWithUri("#" + method.Name.MakeUriFromString())));
+                sb.Append(method.Name);
+                sb.Append("</a>");
+
+                if (signature.Comment != null) {
+                    sb.Append(" - ");
+                    sb.Append(signature.Comment.ShortText);
+                }
+
+                sb.AppendLine();
+                sb.AppendLine("</li>");
+            }
+
+            sb.AppendLine("</ul>");
+
+            return sb.ToString();
+        }
+
+        private string BuildHTMLList(string baseUrl, IEnumerable<TypeScriptVariable> variables)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("<ul>");
+
+            foreach (var variable in variables) { 
+
+                sb.AppendLine("<li>");
+
+                sb.AppendFormat("<a href='{0}'>", CombineWithRootUrl(baseUrl.CombineWithUri("#" + variable.Name.MakeUriFromString())));
+                sb.Append(variable.Name);
+                sb.Append("</a>");
+
+                if (variable.Comment != null) {
+                    sb.Append(" - ");
+                    sb.Append(variable.Comment.ShortText);
+                }
+
+                sb.AppendLine("</li>");
+            }
+
+            sb.AppendLine("</ul>");
+
+            return sb.ToString();
+        }
+
+        private string BuildHTMLList(string baseUrl, IEnumerable<TypeScriptFunction> functions)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("<ul>");
+
+            foreach (var function in functions) {
+                var signature = function.Signatures.First();
+
+                sb.AppendLine("<li>");
+
+                sb.AppendFormat("<a href='{0}'>", CombineWithRootUrl(baseUrl.CombineWithUri("#" + function.Name.MakeUriFromString())));
+                sb.Append(function.Name);
+                sb.Append("</a>");
+
+                if (signature.Comment != null) {
+                    sb.Append(" - ");
+                    sb.Append(signature.Comment.ShortText);
+                }
+
+                sb.AppendLine("</li>");
+            }
+
+            sb.AppendLine("</ul>");
+
+            return sb.ToString();
+        }
+
         private string BuildContent(TypeScriptEnumeration @enum)
         {
             var mb = new MarkdownBuilder();
@@ -330,7 +499,6 @@ namespace aistdoc
             mb.AppendLine();
 
             BuildExample(mb, @enum.Comment);
-
 
             mb.Header(3, "Enum");
 

@@ -122,6 +122,18 @@ namespace aistdoc
             sb.AppendLine(text);
         }
 
+        public void List(string title, string description) 
+        {
+            if (string.IsNullOrEmpty(description)) {
+                List(title);
+            }
+            else {
+                sb.Append("- ");
+                sb.Append(title);
+                sb.AppendLine(description);
+            }
+        }
+
         public void AppendSeparateLine()
         {
             sb.AppendLine();

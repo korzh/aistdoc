@@ -56,7 +56,6 @@ namespace aistdoc
                 builder.AddJsonFile(ConfigPath);
             }
             catch (FileNotFoundException ex) {
-                //GenerateDefaultConfig(_configFilePath, "cs");
                 throw ex;
             }
 

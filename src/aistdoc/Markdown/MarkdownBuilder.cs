@@ -16,11 +16,15 @@ namespace aistdoc
             return "*" + text + "*";
         }
 
+        public static string MarkdownBold(string text)
+        {
+            return "**" + text + "**";
+        }
+
         public static string MarkdownUrl(string title, string url)
         {
             return $"[{title}]({url})";
         }
-
 
         StringBuilder sb = new StringBuilder();
 
@@ -130,6 +134,7 @@ namespace aistdoc
             else {
                 sb.Append("- ");
                 sb.Append(title);
+                sb.Append(' ', 4);
                 sb.AppendLine(description);
             }
         }

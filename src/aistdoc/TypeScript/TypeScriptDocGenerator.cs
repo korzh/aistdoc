@@ -738,6 +738,7 @@ namespace aistdoc
                 }
 
                 mb.AppendLine();
+                mb.AppendLine();
 
             }
 
@@ -898,6 +899,7 @@ namespace aistdoc
                     mb.Append(" - " + signature.Comment.Returns);
                 }
 
+                mb.AppendLine();
                 mb.AppendLine();
             }
 

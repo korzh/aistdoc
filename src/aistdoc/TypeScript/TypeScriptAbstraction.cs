@@ -1,7 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System;
+using System.Text;
+
 
 namespace aistdoc
 {
@@ -14,14 +15,16 @@ namespace aistdoc
     {
         string BeautifulName { get; }
 
+        ITypeScriptModule Module { get; }
+
         TypeScriptComment Comment {get; }
         bool IsExported { get; }
         List<TypeScriptClass> Classes { get; }
         List<TypeScriptInterface> Interfaces { get; }
         List<TypeScriptNamespace> Namespaces { get; }
         List<TypeScriptEnumeration> Enumerations { get; }
-        List<TypeScriptFunction> Functions { get; }
-        List<TypeScriptVariable> Variables { get; }
+        FunctionStore Functions { get; }
+        VariableStore Variables { get; }
 
         string GetPath();
     }
@@ -71,6 +74,49 @@ namespace aistdoc
         Constructor = 512,
         Property = 1024,
         Method = 2048
+    }
+
+    public class FunctionStore : List<TypeScriptFunction>
+    {
+        public IEnumerable<TypeScriptFunction> GetSignificantFunctions()
+        {
+
+            foreach (var function in this) {
+                if (!function.IsExported) {
+                    continue;
+                }
+
+                foreach (var signature in function.Signatures) {
+                    if (signature.Comment != null && signature.Comment.IsSignificant) {
+                        yield return function;
+                    }
+                }
+            }
+
+
+            yield break;
+
+        }
+    }
+
+    public class VariableStore : List<TypeScriptVariable>
+    {
+
+        public IEnumerable<TypeScriptVariable> GetSignificantVariables()
+        {
+
+            foreach (var variable in this) {
+                if (!variable.IsExported) {
+                    continue;
+                }
+
+                if (variable.Comment != null && variable.Comment.IsSignificant) {
+                    yield return variable; 
+                }
+            }
+
+            yield break;
+        }
     }
 
     public class TypeScriptType: ITypeScriptFormatter
@@ -191,7 +237,41 @@ namespace aistdoc
         {
             return $"{Module.GetPath()}/Interfaces/{BeautifulName}";
         }
+
+        public IEnumerable<TypeScriptProperty> GetSignificantProperties()
+        {
+           
+            foreach (var property in Properties) {
+                if (!property.IsPrivate && property.Comment != null
+                    && property.Comment.IsSignificant) {
+
+                    yield return property;
+                }
+            }
+
+            yield break;
+        }
+
+        public IEnumerable<TypeScriptMethod> GetSignificantMethods()
+        {
+            foreach (var method in Methods) {
+                if (method.IsPrivate) {
+                    continue;
+                }
+
+                foreach (var signature in method.Signatures) {
+                    if (signature.Comment != null && signature.Comment.IsSignificant) {
+                        yield return method;
+                    }
+                }
+            }
+
+
+            yield break;
+        }
+
     }
+
 
     public class TypeScriptProperty: ITypeScriptFormatter
     {
@@ -220,10 +300,15 @@ namespace aistdoc
         public bool IsPrivate { get; set; }
         public bool IsOptional { get; set; }
         public bool IsStatic { get; set; }
-        public TypeScriptSignature Signature { get; set; } = new TypeScriptSignature();
+        public List<TypeScriptSignature> Signatures { get; set; } = new List<TypeScriptSignature>();
 
         public string Format(ITypeScriptLibrary lib, FormatMode mode = FormatMode.Markdown) {
-            return "▸ " + Signature.Format(lib);
+            var sb = new StringBuilder();
+            foreach (var signature in Signatures) {
+                sb.AppendLine("▸ " + signature.Format(lib));
+                sb.AppendLine();
+            }
+            return sb.ToString();
         }
 
     }
@@ -252,6 +337,39 @@ namespace aistdoc
         public string GetPath()
         {
             return $"{Module.GetPath()}/Classes/{BeautifulName}";
+        }
+
+        public IEnumerable<TypeScriptProperty> GetSignificantProperties()
+        {
+
+            foreach (var property in Properties) {
+                if (!property.IsPrivate && property.Comment != null
+                    && property.Comment.IsSignificant) {
+
+                    yield return property;
+                }
+            }
+
+            yield break;
+        }
+
+        public IEnumerable<TypeScriptMethod> GetSignificantMethods()
+        {
+            foreach (var method in Methods) {
+
+                if (method.IsPrivate) {
+                    continue;
+                }
+
+                foreach (var signature in method.Signatures) {
+                    if (signature.Comment != null && signature.Comment.IsSignificant) {
+                        yield return method;
+                    }
+                }
+            }
+
+
+            yield break;
         }
 
     }
@@ -315,11 +433,16 @@ namespace aistdoc
         public ITypeScriptModule Module { get; private set; }
         public TypeScriptComment Comment { get; set; }
         public bool IsExported { get; set; }
-        public TypeScriptSignature Signature { get; set; } = new TypeScriptSignature();
+        public List<TypeScriptSignature> Signatures { get; set; } = new List<TypeScriptSignature>();
 
         public string Format(ITypeScriptLibrary lib, FormatMode mode = FormatMode.Markdown)
         {
-            return "▸ " + Signature.Format(lib);
+            var sb = new StringBuilder();
+            foreach (var singature in Signatures) {
+                sb.AppendLine("▸ " + singature.Format(lib));
+            }
+
+            return sb.ToString();
         }
 
         public TypeScriptFunction(ITypeScriptModule module)
@@ -405,10 +528,10 @@ namespace aistdoc
 
         public List<TypeScriptClass> Classes { get; } = new List<TypeScriptClass>();
         public List<TypeScriptInterface> Interfaces { get; } = new List<TypeScriptInterface>();
-        public List<TypeScriptFunction> Functions { get; } = new List<TypeScriptFunction>();
+        public FunctionStore Functions { get; } = new FunctionStore();
         public List<TypeScriptEnumeration> Enumerations { get; } = new List<TypeScriptEnumeration>();
         public List<TypeScriptNamespace> Namespaces { get; } = new List<TypeScriptNamespace>();
-        public List<TypeScriptVariable> Variables { get; } = new List<TypeScriptVariable>();
+        public VariableStore Variables { get; } = new VariableStore();
 
         public TypeScriptNamespace(ITypeScriptModule module)
         {
@@ -453,15 +576,18 @@ namespace aistdoc
     public class TypeScriptPackage: ITypeScriptModule
     {
         public string Name { get; set; }
+        public string Version { get; set; }
+
+        public ITypeScriptModule Module => null;
         public string BeautifulName => Name + " package";
         public TypeScriptComment Comment { get; set; }
         public bool IsExported { get; } = true;
         public List<TypeScriptClass> Classes { get; } = new List<TypeScriptClass>();
         public List<TypeScriptInterface> Interfaces { get; } = new List<TypeScriptInterface>();
         public List<TypeScriptNamespace> Namespaces { get; } = new List<TypeScriptNamespace>();
-        public List<TypeScriptFunction> Functions { get; } = new List<TypeScriptFunction>();
+        public FunctionStore Functions { get; } = new FunctionStore();
         public List<TypeScriptEnumeration> Enumerations { get; } = new List<TypeScriptEnumeration>();
-        public List<TypeScriptVariable> Variables { get; } = new List<TypeScriptVariable>();
+        public VariableStore Variables { get; } = new VariableStore();
 
         public string GetPath()
         {
@@ -501,6 +627,7 @@ namespace aistdoc
         public string ShortText { get; set; }
         public string Text { get; set; }
         public string Returns { get; set; }
+        public bool IsSignificant => Tags.Keys.Contains("significant");
         public Dictionary<string, string> Tags { get; set; } = new Dictionary<string, string>();
     }
 

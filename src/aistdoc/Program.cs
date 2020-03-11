@@ -1,17 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Threading;
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 using McMaster.Extensions.CommandLineUtils;
-
-using Aistant.KbService;
 
 namespace aistdoc
 {
@@ -44,6 +34,7 @@ namespace aistdoc
             // Register commands
             app.Command("publish", c => PublsihDocCommand.Configure(c));
             app.Command("create", c => CreateConfigCommand.Configure(c));
+            app.Command("release-notes", c => ReleaseNotesCommand.Configure(c));
 
             Func<int> runCommandFunc = new RootCommand(app).Run;
             app.OnExecute(runCommandFunc);

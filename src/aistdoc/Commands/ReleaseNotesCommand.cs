@@ -10,7 +10,6 @@ using Microsoft.Extensions.Configuration;
 using McMaster.Extensions.CommandLineUtils;
 
 using LibGit2Sharp;
-using LibGit2Sharp.Handlers;
 
 namespace aistdoc
 {
@@ -66,7 +65,7 @@ namespace aistdoc
         }
 
         private static Regex commitTypeRegex = new Regex(@"^\[(FIX|NEW|UPD|DOC)\]", RegexOptions.IgnoreCase);
-
+        private static Regex tagVersionRegex = new Regex(@"v(\d+)?\.(\d+?)\.(\d+)?");
         class CommitWithType 
         { 
             public Commit Source { get; set; }
@@ -151,6 +150,11 @@ namespace aistdoc
                     var nextVersion = projectSettings.NewVersion;
 
                     Tag tagFrom = repo.Tags["v" + prevVersion];
+                    if (tagFrom == null) {
+                        tagFrom = repo.Tags.OrderByDescending(t => t.Annotation.Tagger.When)
+                                           .FirstOrDefault(t => tagVersionRegex.IsMatch(t.FriendlyName));
+                    }
+
                     Tag tagTo = repo.Tags["v" + nextVersion];
 
                     return repo.Commits

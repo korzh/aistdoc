@@ -7,14 +7,14 @@
 
     <RootNamespace>aistdoc</RootNamespace>
     <Product>aistdoc</Product>
-    <Version>2.0.0-rc4</Version>
-    <AssemblyVersion>2.0.0.4</AssemblyVersion>
+    <Version>2.0.0</Version>
+    <AssemblyVersion>2.0.0.5</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
     <Title>Aistdoc</Title>
     <Description>A .NET Core global tool that generates documentation (an API reference) for your code and publishes it on the web via Aistant (https://aistant.com) service. Supported languages are .NET/C# and TypeScript. 
 </Description>
     <Authors>Sergiy Korzh, Anton Ivanenko</Authors>
-    <Copyright>Copyright 2018-2109 (c) Korzh.com. All rights reserved.</Copyright>
+    <Copyright>Copyright 2018-2020 (c) Korzh.com. All rights reserved.</Copyright>
     <RepositoryUrl>https://github.com/korzh/aistdoc</RepositoryUrl>
 
     <PackageVersion>$(Version)</PackageVersion>

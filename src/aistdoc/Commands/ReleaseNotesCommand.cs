@@ -10,7 +10,6 @@ using Microsoft.Extensions.Configuration;
 using McMaster.Extensions.CommandLineUtils;
 
 using LibGit2Sharp;
-using LibGit2Sharp.Handlers;
 
 namespace aistdoc
 {

@@ -57,9 +57,10 @@ namespace aistdoc
             var projectArg = command.Argument<string>("project", "The project id")
                                     .IsRequired();
             var configOp = command.Option<string>("--config:<filename> | -c:<filename>", "Config file name", optionType: CommandOptionType.SingleOrNoValue);
+            var patOp = command.Option<string>("--pat:<token>", "The personal access token", optionType: CommandOptionType.SingleOrNoValue);
             var outputOp = command.Option<string>("--output:<filename> | -o:<filename>", "Output file", optionType: CommandOptionType.SingleOrNoValue);
 
-            Func<int> runCommandFunc = new ReleaseNotesCommand(projectArg, configOp, outputOp).Run;
+            Func<int> runCommandFunc = new ReleaseNotesCommand(projectArg, configOp, patOp, outputOp).Run;
             command.OnExecute(runCommandFunc);
 
         }
@@ -74,21 +75,28 @@ namespace aistdoc
 
         CommandArgument<string> _projectArg;
         CommandOption<string> _configOp;
+        CommandOption<string> _patOp;
         CommandOption<string> _outputOp;
 
         string ConfigPath => _configOp.HasValue()
                                         ? _configOp.Value()
                                         : "aistdoc.json";
+        string PAT => _patOp.Value();
 
         string OutputPath => _outputOp.HasValue()
                                         ? _configOp.Value()
                                         : "Release notes.md";
         string ProjectId => _projectArg.Value;
 
-        protected ReleaseNotesCommand(CommandArgument<string> projectArg, CommandOption<string> configOp, CommandOption<string> outputOp)
+        protected ReleaseNotesCommand(
+            CommandArgument<string> projectArg, 
+            CommandOption<string> configOp, 
+            CommandOption<string> patOp, 
+            CommandOption<string> outputOp)
         {
             _projectArg = projectArg;
             _configOp = configOp;
+            _patOp = patOp;
             _outputOp = outputOp;
         }
 
@@ -234,6 +242,10 @@ namespace aistdoc
 
         private Credentials GetCredentials(string id)
         {
+            if (!string.IsNullOrEmpty(PAT)) {
+                return new UsernamePasswordCredentials { Username = PAT, Password = string.Empty };
+            }
+
             if (string.IsNullOrEmpty(id))
                 return GetDefaultCredentials();
 

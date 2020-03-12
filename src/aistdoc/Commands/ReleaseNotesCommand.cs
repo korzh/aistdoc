@@ -84,7 +84,7 @@ namespace aistdoc
         string PAT => _patOp.Value();
 
         string OutputPath => _outputOp.HasValue()
-                                        ? _configOp.Value()
+                                        ? _outputOp.Value()
                                         : "Release notes.md";
         string ProjectId => _projectArg.Value;
 
@@ -192,9 +192,8 @@ namespace aistdoc
         private Repository GetRepository(RepositorySettings repoSettings) 
         {
             CloneRepositoryIfNotExist(repoSettings);
-
             var repo = new Repository(repoSettings.Path);
-            
+            var braches = repo.Branches.ToList();
             var branch = repo.Branches[repoSettings.Branch];
             if (branch == null)
                 throw new Exception("Branch is not found " + repoSettings.Branch);

@@ -193,7 +193,7 @@ namespace aistdoc
         {
             CloneRepositoryIfNotExist(repoSettings);
             var repo = new Repository(repoSettings.Path);
-            var braches = repo.Branches.ToList();
+
             var branch = repo.Branches[repoSettings.Branch];
             if (branch == null)
                 throw new Exception("Branch is not found " + repoSettings.Branch);

@@ -13,7 +13,7 @@ namespace aistdoc
         {
 
             System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            Console.WriteLine($"aistdoc utility {assembly.GetName().Version.ToString()} (c) Aistant 2018-2019");
+            Console.WriteLine($"aistdoc utility {assembly.GetName().Version.ToString()} (c) Aistant 2018-2020");
             Console.WriteLine("Current folder: " + Directory.GetCurrentDirectory());
 
             var app = new CommandLineApplication();

@@ -34,7 +34,7 @@ namespace aistdoc
             // Register commands
             app.Command("publish", c => PublsihDocCommand.Configure(c));
             app.Command("create", c => CreateConfigCommand.Configure(c));
-            app.Command("release-notes", c => ReleaseNotesCommand.Configure(c));
+            app.Command("changelog", c => ChangelogCommand.Configure(c));
 
             Func<int> runCommandFunc = new RootCommand(app).Run;
             app.OnExecute(runCommandFunc);

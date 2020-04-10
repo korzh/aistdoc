@@ -346,7 +346,11 @@ namespace aistdoc
         {
 
             var mb = new MarkdownBuilder();
-            mb.Header(1, $"{project.Title} Version {Version ?? project.NewVersion}");
+            var title = project.Title
+                .Replace("{version}", Version ?? project.NewVersion)
+                .Replace("{date}", DateTime.UtcNow.ToString("yyyy-MM-dd"));
+
+            mb.Header(2, title);
             mb.AppendLine();
 
             if (commitGroups.TryGetValue("NEW", out var newCommits)) {
@@ -375,11 +379,11 @@ namespace aistdoc
             var version = new Version(Version);
 
             var service = new AistantKbService(_aistantSettings, null);
-            var article = service.GetArticleAsync(changelog.Uri).Result;
+            var article = service.GetArticleAsync(changelog.Uri, loadById: true).Result;
             if (article != null) {
 
-                var changeLogPattern = "<div id=\"chagelog-starts\"></div>";
-                var divVerPattern = "<div(.*?)id=\"{0}\"/\"{1}\"(.*?)data-published=\"(.*?)\"(.*?)></div>";
+                var changeLogPattern = "<div(.*?)id=\"changelog-starts\"></div>";
+                var divVerPattern = "<div(.*?)id=\"{0}/{1}\"(.*?)(data-published=\"(.*?)\")?(.*?)></div>";
                 var changelogPatternMatch = Regex.Match(article.Content, changeLogPattern);
                 if (changelogPatternMatch.Success) {
 
@@ -393,19 +397,19 @@ namespace aistdoc
                     Match divNextVerMatch = Regex.Match(article.Content.Substring(indexForNextVerSearch),
                         string.Format(divVerPattern, "(.*?)", "(.*?)"));
 
-                    var startIndex = (divCurrVerMatch.Success)
-                              ? divCurrVerMatch.Index
+                    var startIndex = divCurrVerMatch.Success
+                              ? divCurrVerMatch.Index 
                               : changelogPatternMatch.Index + changelogPatternMatch.Length;
 
                     var endIndex = divNextVerMatch.Success
-                        ? divNextVerMatch.Index
+                        ? divNextVerMatch.Index + indexForNextVerSearch
                         : article.Content.Length;
 
 
                     var result = article.Content.Substring(0, startIndex);
-                    result += $"<div id=\"{project.Id}\"/\"{version.GetVersionWithourPreRelease()}\" data-published=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n\n";
-                    result += releaseNotes;
                     result += '\n';
+                    result += $"<div id=\"{project.Id}/{version.GetVersionWithourPreRelease()}\" data-published=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n\n";
+                    result += releaseNotes;
 
                     if (endIndex != article.Content.Length) {
                         result += article.Content.Substring(endIndex);
@@ -416,8 +420,8 @@ namespace aistdoc
                 else {
                     var sb = new StringBuilder(article.Content)
                        .AppendLine()
-                       .AppendLine("<div id=\"chagelog-starts\"></div>")
-                       .AppendLine($"<div id=\"{project.Id}\"/\"{version.GetVersionWithourPreRelease()}\" data-published=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n")
+                       .AppendLine("<div id=\"changelog-starts\"></div>")
+                       .AppendLine($"<div id=\"{project.Id}/{version.GetVersionWithourPreRelease()}\" data-published=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n")
                        .Append(releaseNotes);
 
                     article.Content = sb.ToString();
@@ -425,8 +429,8 @@ namespace aistdoc
             }
             else {
                 var sb = new StringBuilder()
-                  .AppendLine("<div id=\"chagelog-starts\"></div>")
-                  .AppendLine($"<div id=\"{project.Id}\"/\"{version.GetVersionWithourPreRelease()}\" data-published=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n")
+                  .AppendLine("<div id=\"changelog-starts\"></div>")
+                  .AppendLine($"<div id=\"{project.Id}/{version.GetVersionWithourPreRelease()}\" data-published=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n")
                   .Append(releaseNotes);
 
 

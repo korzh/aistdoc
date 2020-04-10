@@ -69,13 +69,14 @@ namespace aistdoc
     class ProjectSettings
     { 
         public string Id { get; set; }
-        public string Title { get; set; }
+        public string TitleTemplate { get; set; } = "Version ${VersionNum}";
+        public string LogItemTemplate { get; set; } = "__[${ItemType}]__: ${ItemTitle}    ${ItemDescription}\n";
         public string PrevVersion { get; set; } = "";
         public string NewVersion { get; set; } = "";
         public string Changelog { get; set; }
         public List<RepositorySettings> Repositories { get; set; } = new List<RepositorySettings>();
     }
-
+    
     class RepositorySettings
     { 
         public string CredentialId { get; set; }
@@ -329,7 +330,7 @@ namespace aistdoc
                 : new UsernamePasswordCredentials { Username = credentials.UserName, Password = credentials.Password };
         }
 
-        private void WriteCommitWithType(MarkdownBuilder mb, CommitWithType commit, string prefix) {
+        private void WriteCommitWithType(MarkdownBuilder mb, ProjectSettings project,  CommitWithType commit, string prefix) {
             var message = commit.Source.Message.Replace($"[{commit.Type}] ", "", 
                 StringComparison.InvariantCultureIgnoreCase);
             var separator = message.IndexOf("\n");
@@ -339,35 +340,40 @@ namespace aistdoc
                 title = message.Substring(0, separator);
                 description = message.Substring(separator + 1);
             }
-            mb.List(prefix + ": " + MarkdownBuilder.MarkdownBold(title), description);
+
+            mb.List(project.LogItemTemplate
+                .Replace("${ItemType}", prefix)
+                .Replace("${ItemTitle}", title)
+                .Replace("${ItemDescription}", description));
         }
 
         private string BuildReleaseNotes(ProjectSettings project, Dictionary<string, List<CommitWithType>> commitGroups)
         {
 
             var mb = new MarkdownBuilder();
-            var title = project.Title
-                .Replace("{version}", Version ?? project.NewVersion)
-                .Replace("{date}", DateTime.UtcNow.ToString("yyyy-MM-dd"));
+            var title = project.TitleTemplate
+                .Replace("${VersionNum}", Version ?? project.NewVersion);
 
             mb.Header(2, title);
+            mb.AppendLine();
+            mb.AppendLine($"<div class=\"aist-article-updated\"><span>{DateTime.UtcNow.ToString("yyyy-MM-dd")}</span></div>\n");
             mb.AppendLine();
 
             if (commitGroups.TryGetValue("NEW", out var newCommits)) {
                 foreach (var commit in newCommits) {
-                    WriteCommitWithType(mb, commit, "New");
+                    WriteCommitWithType(mb, project, commit, "New");
                 }
             }
 
             if (commitGroups.TryGetValue("UPD", out var updateCommits)) {
                 foreach (var commit in updateCommits) {
-                    WriteCommitWithType(mb, commit, "Upd");
+                    WriteCommitWithType(mb, project, commit, "Upd");
                 }
             }
 
             if (commitGroups.TryGetValue("FIX", out var fixCommits)) {
                 foreach (var commit in fixCommits) {
-                    WriteCommitWithType(mb, commit, "Fix");
+                    WriteCommitWithType(mb, project, commit, "Fix");
                 }
             }
 

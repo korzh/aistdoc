@@ -391,7 +391,7 @@ namespace aistdoc
             if (article != null) {
 
                 var changeLogPattern = "<div(.*?)id=\"changelog-start\"></div>";
-                var divVerPattern = "<div(.*?)id=\"{0}/{1}\"(.*?)(data-published=\"(.*?)\")?(.*?)></div>";
+                var divVerPattern = "<div(.*?)id=\"{0}/{1}\"(.*?)(data-released=\"(.*?)\")?(.*?)></div>";
                 var changelogPatternMatch = Regex.Match(article.Content, changeLogPattern);
                 if (changelogPatternMatch.Success) {
 
@@ -416,7 +416,7 @@ namespace aistdoc
 
                     var result = article.Content.Substring(0, startIndex);
                     result += '\n';
-                    result += $"<div id=\"{project.Id}/{version.GetVersionWithourPreRelease()}\" data-published=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n\n";
+                    result += $"<div id=\"{project.Id}/{version.GetVersionWithourPreRelease()}\" data-released=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n\n";
                     result += releaseNotes;
 
                     if (endIndex != article.Content.Length) {
@@ -429,7 +429,7 @@ namespace aistdoc
                     var sb = new StringBuilder(article.Content)
                        .AppendLine()
                        .AppendLine("<div id=\"changelog-start\"></div>")
-                       .AppendLine($"<div id=\"{project.Id}/{version.GetVersionWithourPreRelease()}\" data-published=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n")
+                       .AppendLine($"<div id=\"{project.Id}/{version.GetVersionWithourPreRelease()}\" data-released=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n")
                        .Append(releaseNotes);
 
                     article.Content = sb.ToString();
@@ -438,7 +438,7 @@ namespace aistdoc
             else {
                 var sb = new StringBuilder()
                   .AppendLine("<div id=\"changelog-start\"></div>")
-                  .AppendLine($"<div id=\"{project.Id}/{version.GetVersionWithourPreRelease()}\" data-published=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n")
+                  .AppendLine($"<div id=\"{project.Id}/{version.GetVersionWithourPreRelease()}\" data-released=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n")
                   .Append(releaseNotes);
 
 

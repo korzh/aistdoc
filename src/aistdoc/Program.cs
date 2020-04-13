@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 using McMaster.Extensions.CommandLineUtils;
@@ -11,6 +12,8 @@ namespace aistdoc
 
         static int Main(string[] args) 
         {
+
+            var dict = new Dictionary<int, string>();
 
             System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
             Console.WriteLine($"aistdoc utility {assembly.GetName().Version.ToString()} (c) Aistant 2018-2020");

@@ -71,6 +71,7 @@ namespace aistdoc
         public string Id { get; set; }
         public string TitleTemplate { get; set; } = "Version ${VersionNum}";
         public string LogItemTemplate { get; set; } = "__[${ItemType}]__: ${ItemTitle}    ${ItemDescription}\n";
+        public string DateItemTemplate { get; set; } = "<div class=\"aist-article-updated\"><span>${ReleasedDate}</span></div>\n";
         public string PrevVersion { get; set; } = "";
         public string NewVersion { get; set; } = "";
         public string Changelog { get; set; }
@@ -356,7 +357,8 @@ namespace aistdoc
 
             mb.Header(2, title);
             mb.AppendLine();
-            mb.AppendLine($"<div class=\"aist-article-updated\"><span>{DateTime.UtcNow.ToString("yyyy-MM-dd")}</span></div>\n");
+            if (!string.IsNullOrEmpty(project.DateItemTemplate))
+                mb.AppendLine(project.DateItemTemplate.Replace("${ReleasedDate}", DateTime.UtcNow.ToString("yyyy-MM-dd")));
             mb.AppendLine();
 
             if (commitGroups.TryGetValue("NEW", out var newCommits)) {
@@ -388,8 +390,8 @@ namespace aistdoc
             var article = service.GetArticleAsync(changelog.Uri, loadById: true).Result;
             if (article != null) {
 
-                var changeLogPattern = "<div(.*?)id=\"changelog-starts\"></div>";
-                var divVerPattern = "<div(.*?)id=\"{0}/{1}\"(.*?)(data-published=\"(.*?)\")?(.*?)></div>";
+                var changeLogPattern = "<div(.*?)id=\"changelog-start\"></div>";
+                var divVerPattern = "<div(.*?)id=\"{0}/{1}\"(.*?)(date-published=\"(.*?)\")?(.*?)></div>";
                 var changelogPatternMatch = Regex.Match(article.Content, changeLogPattern);
                 if (changelogPatternMatch.Success) {
 
@@ -426,8 +428,8 @@ namespace aistdoc
                 else {
                     var sb = new StringBuilder(article.Content)
                        .AppendLine()
-                       .AppendLine("<div id=\"changelog-starts\"></div>")
-                       .AppendLine($"<div id=\"{project.Id}/{version.GetVersionWithourPreRelease()}\" data-published=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n")
+                       .AppendLine("<div id=\"changelog-start\"></div>")
+                       .AppendLine($"<div id=\"{project.Id}/{version.GetVersionWithourPreRelease()}\" date-published=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n")
                        .Append(releaseNotes);
 
                     article.Content = sb.ToString();
@@ -435,8 +437,8 @@ namespace aistdoc
             }
             else {
                 var sb = new StringBuilder()
-                  .AppendLine("<div id=\"changelog-starts\"></div>")
-                  .AppendLine($"<div id=\"{project.Id}/{version.GetVersionWithourPreRelease()}\" data-published=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n")
+                  .AppendLine("<div id=\"changelog-start\"></div>")
+                  .AppendLine($"<div id=\"{project.Id}/{version.GetVersionWithourPreRelease()}\" date-published=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n")
                   .Append(releaseNotes);
 
 

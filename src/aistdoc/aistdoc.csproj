@@ -7,8 +7,8 @@
 
     <RootNamespace>aistdoc</RootNamespace>
     <Product>aistdoc</Product>
-    <Version>2.1.0-rc2</Version>
-    <AssemblyVersion>2.1.0.2</AssemblyVersion>
+    <Version>2.1.0-rc3</Version>
+    <AssemblyVersion>2.1.0.3</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
     <Title>Aistdoc</Title>
     <Description>A .NET Core global tool that generates documentation (an API reference) for your code and publishes it on the web via Aistant (https://aistant.com) service. Supported languages are .NET/C# and TypeScript. 

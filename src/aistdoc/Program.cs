@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 using McMaster.Extensions.CommandLineUtils;
@@ -12,8 +13,10 @@ namespace aistdoc
         static int Main(string[] args) 
         {
 
+            var dict = new Dictionary<int, string>();
+
             System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            Console.WriteLine($"aistdoc utility {assembly.GetName().Version.ToString()} (c) Aistant 2018-2019");
+            Console.WriteLine($"aistdoc utility {assembly.GetName().Version.ToString()} (c) Aistant 2018-2020");
             Console.WriteLine("Current folder: " + Directory.GetCurrentDirectory());
 
             var app = new CommandLineApplication();
@@ -34,7 +37,7 @@ namespace aistdoc
             // Register commands
             app.Command("publish", c => PublsihDocCommand.Configure(c));
             app.Command("create", c => CreateConfigCommand.Configure(c));
-            app.Command("release-notes", c => ReleaseNotesCommand.Configure(c));
+            app.Command("changelog", c => ChangelogCommand.Configure(c));
 
             Func<int> runCommandFunc = new RootCommand(app).Run;
             app.OnExecute(runCommandFunc);

@@ -386,7 +386,12 @@ namespace aistdoc
                     }
                     else if (childKind == TypeScriptTokenKind.Constructor) {
                         @class.Constructor = new TypeScriptMethod();
-                        LoadFromJObject(@class.Constructor,child);
+                        LoadFromJObject(@class.Constructor, child);
+                    }
+                    else if (childKind == TypeScriptTokenKind.Accessor) {
+                        var accessor = new TypeScriptAccessor();
+                        LoadFromJObject(accessor, child);
+                        @class.Accessors.Add(accessor);
                     }
                 }
             }
@@ -412,6 +417,46 @@ namespace aistdoc
 
             }
         }
+
+        private void LoadFromJObject(TypeScriptAccessor accessor, JObject jobject) 
+        {
+            if (jobject.TryGetValue("comment", out var commentToken)) {
+                accessor.Comment = new TypeScriptComment();
+                LoadFromJObject(accessor.Comment, commentToken.ToObject<JObject>());
+            }
+
+            if (jobject.TryGetValue("name", out var nameTokent)) {
+                accessor.Name = nameTokent.ToString();
+            }
+
+            if (jobject.TryGetValue("flags", out var flagsToken)) {
+                var flagsObj = flagsToken.ToObject<JObject>();
+
+                if (flagsObj.TryGetValue("isPublic", out var isPublicToken)) {
+                    accessor.IsPublic = isPublicToken.ToObject<bool>();
+                }
+
+                if (flagsObj.TryGetValue("isProtected", out var isProtectedToken)) {
+                    accessor.IsProtected = isProtectedToken.ToObject<bool>();
+                }
+
+                if (flagsObj.TryGetValue("isPrivate", out var isPrivateToken)) {
+                    accessor.IsPrivate = isPrivateToken.ToObject<bool>();
+                }
+            }
+
+            if (jobject.TryGetValue("getSignature", out var signatureToken)) {
+                accessor.GetSignature = new TypeScriptSignature();
+                LoadFromJObject(accessor.GetSignature, signatureToken.ToObject<List<JObject>>().First());
+                accessor.GetSignature.Name = $"get {accessor.Name}";
+            }
+
+            if (jobject.TryGetValue("setSignature", out signatureToken)) {
+                accessor.SetSignature = new TypeScriptSignature();
+                LoadFromJObject(accessor.SetSignature, signatureToken.ToObject<List<JObject>>().First());
+                accessor.SetSignature.Name = $"set {accessor.Name}";
+            }
+        } 
 
         private void LoadFromJObject(TypeScriptProperty property, JObject jobject)
         {
@@ -441,10 +486,10 @@ namespace aistdoc
                 if (flagsObj.TryGetValue("isPrivate", out var isPrivateToken)) {
                     property.IsPrivate = isPrivateToken.ToObject<bool>();
                 }
+            }
 
-                if (jobject.TryGetValue("type", out var typeToken)) {
-                    property.Type = LoadTypeFromJObject(typeToken.ToObject<JObject>());
-                }
+            if (jobject.TryGetValue("type", out var typeToken)) {
+                property.Type = LoadTypeFromJObject(typeToken.ToObject<JObject>());
             }
 
             if (jobject.TryGetValue("defaultValue", out var defValToken)) {

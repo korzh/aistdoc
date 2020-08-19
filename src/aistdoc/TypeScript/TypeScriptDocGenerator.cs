@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 
 using Aistant.KbService;
@@ -561,6 +562,9 @@ namespace aistdoc
             var protectedProperties = @class.Properties.Where(p => p.IsProtected).ToList();
             var staticProperties = @class.Properties.Where(p => p.IsStatic && !p.IsPrivate).ToList();
 
+            var publicAccessors = @class.Accessors.Where(a =>!a.IsPrivate && !a.IsProtected).ToList();
+            var protectedAccesors = @class.Accessors.Where(a => a.IsProtected).ToList();
+
             if (publicProperties.Any()) {
                 mb.Header(2, "Public Properties");
                 mb.AppendSeparateLine();
@@ -582,6 +586,22 @@ namespace aistdoc
                 mb.AppendSeparateLine();
                 foreach (var property in staticProperties) {
                     BuildContent(mb, property);
+                }
+            }
+
+            if (publicAccessors.Any()) {
+                mb.Header(2, "Public Accessors");
+                mb.AppendSeparateLine();
+                foreach (var accessor in publicAccessors) {
+                    BuildContent(mb, accessor);
+                }
+            }
+
+            if (protectedAccesors.Any()) {
+                mb.Header(2, "Protected Accessors");
+                mb.AppendSeparateLine();
+                foreach (var accessor in protectedAccesors) {
+                    BuildContent(mb, accessor);
                 }
             }
 
@@ -614,6 +634,7 @@ namespace aistdoc
 
         private void BuildIndex(MarkdownBuilder mb, TypeScriptClass @class)
         {
+  
             var publicMethods = @class.Methods.Where(m => !m.IsStatic && !m.IsPrivate && !m.IsProtected).ToList();
             var protectedMethods = @class.Methods.Where(m => m.IsProtected).ToList();
             var staticMethods = @class.Methods.Where(m => m.IsStatic && !m.IsPrivate).ToList();
@@ -622,6 +643,9 @@ namespace aistdoc
             var publicProperties = @class.Properties.Where(p => !p.IsStatic && !p.IsPrivate && !p.IsProtected).ToList();
             var protectedProperties = @class.Properties.Where(p => p.IsProtected).ToList();
             var staticProperties = @class.Properties.Where(p => p.IsStatic && !p.IsPrivate).ToList();
+
+            var publicAccessors = @class.Accessors.Where(m => !m.IsPrivate && !m.IsProtected).ToList();
+            var protectedAccessors = @class.Accessors.Where(p => p.IsProtected).ToList();
 
             var path = @class.GetPath().MakeUriFromString();
             //Index region
@@ -658,6 +682,27 @@ namespace aistdoc
 
                 foreach (var property in staticProperties) {
                     mb.ListLink(property.Name, CombineWithRootUrl(path.CombineWithUri("#" + property.Name.MakeUriFromString())));
+                }
+
+                mb.AppendLine();
+            }
+
+            if (publicAccessors.Any()) {
+                mb.HeaderWithLink(3, "Public Accessors", CombineWithRootUrl(path.CombineWithUri("#public-accessors-1")));
+
+                foreach (var accessor in publicAccessors) {
+                    mb.ListLink(accessor.Name, CombineWithRootUrl(path.CombineWithUri("#" + accessor.Name.MakeUriFromString())));
+                }
+
+                mb.AppendLine();
+            }
+
+            if (protectedAccessors.Any()) {
+
+                mb.HeaderWithLink(3, "Protected Accessors", CombineWithRootUrl(path.CombineWithUri("#protected-accessors-1")));
+
+                foreach (var accessor in protectedAccessors) {
+                    mb.ListLink(accessor.Name, CombineWithRootUrl(path.CombineWithUri("#" + accessor.Name.MakeUriFromString())));
                 }
 
                 mb.AppendLine();
@@ -874,6 +919,52 @@ namespace aistdoc
 
             mb.AppendLine();
             mb.AppendLine();
+        }
+
+        private void BuildContent(MarkdownBuilder mb, TypeScriptAccessor accessor)
+        {
+            mb.Header(3, accessor.Name);
+
+            if (accessor.GetSignature != null) {
+                mb.AppendLine("⇄ " + accessor.GetSignature.Format(_lib));
+
+                mb.AppendLine();
+
+                BuildParameters(mb, accessor.GetSignature.Parameters);
+
+                mb.AppendLine();
+
+                mb.Append($"**Returns** " + accessor.GetSignature.Type.Format(_lib));
+                if (!string.IsNullOrEmpty(accessor.GetSignature.Comment?.Returns)) {
+                    mb.Append(" - " + accessor.GetSignature.Comment.Returns);
+                }
+
+                mb.AppendLine();
+                mb.AppendLine();
+
+                mb.AppendSeparateLine();
+            }
+
+            if (accessor.SetSignature != null) {
+                mb.AppendLine("⇄ " + accessor.SetSignature.Format(_lib));
+
+                mb.AppendLine();
+
+                BuildParameters(mb, accessor.SetSignature.Parameters);
+
+                mb.AppendLine();
+
+                mb.Append($"**Returns** " + accessor.SetSignature.Type.Format(_lib));
+                if (!string.IsNullOrEmpty(accessor.SetSignature.Comment?.Returns))
+                {
+                    mb.Append(" - " + accessor.SetSignature.Comment.Returns);
+                }
+
+                mb.AppendLine();
+                mb.AppendLine();
+
+                mb.AppendSeparateLine();
+            }
         }
 
         private void BuildContent(MarkdownBuilder mb, TypeScriptMethod method)

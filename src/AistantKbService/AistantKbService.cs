@@ -78,6 +78,15 @@ namespace Aistant.KbService {
         public bool AddVersion { get; set; } = true;
 
         public bool Publish { get; set; } = true;
+
+        public List<Changelog> Changelogs { get; set; } = new List<Changelog>();
+    }
+
+    public class Changelog {
+
+        public string Uri { get; set; }
+
+        public string Id { get; set; }
     }
 
     public class Section {
@@ -621,7 +630,7 @@ namespace Aistant.KbService {
             }
         }
 
-        private async Task<AistantArticle> GetArticleAsync(string uri) {
+        public async Task<AistantArticle> GetArticleAsync(string uri, bool loadById = false) {
             if (string.IsNullOrEmpty(_accessToken)) {
                 await Login();
             }
@@ -651,6 +660,17 @@ namespace Aistant.KbService {
             var responseStr = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK) {
+
+                if (loadById) {
+                    var article = JsonConvert.DeserializeObject<AistantArticle>(responseStr);
+                    url = _settings.ApiHost
+                            .CombineWithUri(_settings.ArticlesEndpoint)
+                            .CombineWithUri(article.Id);
+
+                    response = await _httpClient.GetAsync(url);
+                    responseStr = await response.Content.ReadAsStringAsync();
+                }
+
                 return !string.IsNullOrEmpty(responseStr)
                   ? JsonConvert.DeserializeObject<AistantArticle>(responseStr)
                   : null;

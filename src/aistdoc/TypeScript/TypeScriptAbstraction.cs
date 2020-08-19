@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 
 
@@ -73,7 +74,8 @@ namespace aistdoc
         Interface = 256,
         Constructor = 512,
         Property = 1024,
-        Method = 2048
+        Method = 2048,
+        Accessor = 262144
     }
 
     public class FunctionStore : List<TypeScriptFunction>
@@ -272,6 +274,36 @@ namespace aistdoc
 
     }
 
+    public class TypeScriptAccessor : ITypeScriptFormatter 
+    { 
+        public string Name { get; set; }
+
+        public TypeScriptComment Comment { get; set; }
+
+        public bool IsPublic { get; set; }
+        public bool IsProtected { get; set; }
+        public bool IsPrivate { get; set; }
+
+        public TypeScriptSignature GetSignature { get; set; }
+        public TypeScriptSignature SetSignature { get; set; }
+
+        public string Format(ITypeScriptLibrary lib, FormatMode mode)
+        {
+            var sb = new StringBuilder();
+            if (GetSignature != null) {
+                sb.AppendLine("⇄ " + GetSignature.Format(lib));
+                sb.AppendLine();
+            }
+
+            if (SetSignature != null) {
+                sb.AppendLine("⇄ " + SetSignature.Format(lib));
+                sb.AppendLine();
+            }
+
+            return sb.ToString();
+        }
+    }
+
 
     public class TypeScriptProperty: ITypeScriptFormatter
     {
@@ -325,6 +357,7 @@ namespace aistdoc
 
         public TypeScriptMethod Constructor { get; set; }
         public List<TypeScriptProperty> Properties { get; set; } = new List<TypeScriptProperty>();
+        public List<TypeScriptAccessor> Accessors { get; set; } = new List<TypeScriptAccessor>();
         public List<TypeScriptMethod> Methods { get; set; } = new List<TypeScriptMethod>();
         public List<TypeScriptType> ImplementedTypes { get; set; } = new List<TypeScriptType>();
         public List<TypeScriptType> ExtendedTypes { get; set; } = new List<TypeScriptType>();

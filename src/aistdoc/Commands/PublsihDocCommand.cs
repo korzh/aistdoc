@@ -21,7 +21,7 @@ namespace aistdoc
             command.HelpOption("-?|-h|--help");
 
             var configOp = command.Option("--config:<filename> | -c:<filename>", "Config file name", optionType: CommandOptionType.SingleOrNoValue);
-            var outputOp = command.Option("--output:<folder> | -c: <folder>", "Output path", optionType: CommandOptionType.SingleOrNoValue);
+            var outputOp = command.Option("--output:<folder> | -o: <folder>", "Output path", optionType: CommandOptionType.SingleOrNoValue);
                                 
             Func<int> runCommandFunc = new PublsihDocCommand(configOp, outputOp).Run;
             command.OnExecute(runCommandFunc);
@@ -75,7 +75,7 @@ namespace aistdoc
                     saver = new AistantSaver(aistantSettings, logger);
                 }
 
-                var mode = configuration["source:mode"].ToString();
+                var mode = configuration["source:mode"]?.ToString();
 
                 IDocGenerator generator;
                 if (mode == "typescript") {

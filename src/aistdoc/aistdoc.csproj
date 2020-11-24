@@ -7,8 +7,8 @@
 
     <RootNamespace>aistdoc</RootNamespace>
     <Product>aistdoc</Product>
-    <Version>2.1.0</Version>
-    <AssemblyVersion>2.1.0.4</AssemblyVersion>
+    <Version>2.1.1</Version>
+    <AssemblyVersion>2.1.1.1</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
     <Title>Aistdoc</Title>
     <Description>A .NET Core global tool that generates documentation (an API reference) for your code and publishes it on the web via Aistant (https://aistant.com) service. Supported languages are .NET/C# and TypeScript. 
@@ -31,12 +31,6 @@
     <ToolCommandName>aistdoc</ToolCommandName>
     <Company>Korzh.com</Company>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="Resources\config-csharp.json" />
-    <None Remove="Resources\config-typescript.json" />
-    <None Remove="Resources\help.txt" />
-  </ItemGroup>  
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\config-csharp.json" />

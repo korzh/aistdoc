@@ -14,7 +14,7 @@ using Aistant.KbService;
 
 namespace aistdoc
 { 
-    class Version {
+    class Version: IComparable<Version> {
 
         private static readonly Regex _versionRegex = new Regex(@"(\d+)?\.(\d+?)\.(\d+)(-(alpha|beta|rc)(\d+))?");
         public int Major { get; private set; } = 0;
@@ -37,6 +37,17 @@ namespace aistdoc
         public string GetVersionWithourPreRelease()
         {
             return $"{Major}.{Minor}.{Patch}";
+        }
+
+        public int CompareTo(Version other)
+        {
+            if (Major != other.Major)
+                return Major - other.Major;
+
+            if (Minor != other.Minor)
+                return Minor = other.Minor;
+
+            return Patch - other.Patch;
         }
 
         public Version(string version)
@@ -193,8 +204,8 @@ namespace aistdoc
             try {
                 builder.AddJsonFile(ConfigPath);
                 var config = builder.Build();
-                _gitSettings = config.GetSection("git").Get<GitSettings>();
-                _aistantSettings = config.GetSection("aistant").Get<AistantSettings>();
+                _gitSettings = config.GetSection("git").Get<GitSettings>() ?? new GitSettings();
+                _aistantSettings = config.GetSection("aistant").Get<AistantSettings>() ?? new AistantSettings();
             }
             catch (FileNotFoundException ex) {
                 throw ex;
@@ -216,12 +227,23 @@ namespace aistdoc
                     var repo = GetRepository(rs);
 
                     var prevVersion = projectSettings.PrevVersion;
-                    var nextVersion = projectSettings.NewVersion;
+                    var nextVersion = !string.IsNullOrEmpty(projectSettings.NewVersion)
+                        ? projectSettings.NewVersion
+                        : Version;
 
                     Tag tagFrom = repo.Tags["v" + prevVersion];
                     if (tagFrom == null) {
-                        tagFrom = repo.Tags.OrderByDescending(t => t.Annotation.Tagger.When)
-                                           .FirstOrDefault(t => tagVersionRegex.IsMatch(t.FriendlyName));
+                        var orderedTags = repo.Tags.Where(t => tagVersionRegex.IsMatch(t.FriendlyName))
+                                           .OrderByDescending(t => new Version(t.FriendlyName.Replace("v", "")));
+
+                        if (!string.IsNullOrEmpty(nextVersion)) {
+                            var curVersion = new Version(nextVersion);
+                            tagFrom = orderedTags.FirstOrDefault(t => new Version(t.FriendlyName.Replace("v", ""))
+                                .CompareTo(curVersion) < 0);
+                        }
+                        else { 
+                            tagFrom = orderedTags.FirstOrDefault();
+                        }
                     }
 
                     Tag tagTo = repo.Tags["v" + nextVersion];

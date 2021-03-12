@@ -376,7 +376,7 @@ namespace aistdoc
         private string BuildReleaseNotes(ProjectSettings project, Dictionary<string, List<CommitWithType>> commitGroups)
         {
             var mb = new MarkdownBuilder();
-            if (project.SkipVersionHeading) {
+            if (!project.SkipVersionHeading) {
                 var title = project.TitleTemplate
                     .Replace("${VersionNum}", Version ?? project.NewVersion);
 

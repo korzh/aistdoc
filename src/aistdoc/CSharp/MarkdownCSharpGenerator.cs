@@ -1,13 +1,15 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml.Linq;
+
+using Microsoft.Extensions.Logging;
+
+using Mono.Cecil;
 
 namespace aistdoc 
 {
@@ -30,97 +32,81 @@ namespace aistdoc
 
     internal class MarkdownableSharpType {
 
-        private readonly Type _type;
+        private readonly TypeDefinition _type;
         public ILookup<string, XmlDocumentComment> CommentLookUp;
 
+        public string AssymblyName => _type.Module.Assembly.Name.Name;
         public string Namespace => _type.Namespace;
         public string Name => _type.Name;
         public CSharpTypeKind Kind => _type.IsInterface ? CSharpTypeKind.Interface : _type.IsEnum ? CSharpTypeKind.Enum : _type.IsValueType ? CSharpTypeKind.Struct : CSharpTypeKind.Class;
         public string BeautifyName => CSharpBeautifier.BeautifyType(_type);
 
-        public MarkdownableSharpType(Type type, ILookup<string, XmlDocumentComment> commentLookup) {
-            this._type = type;
-            this.CommentLookUp = commentLookup;
+        public MarkdownableSharpType(TypeDefinition type, ILookup<string, XmlDocumentComment> commentLookup) {
+            _type = type;
+            CommentLookUp = commentLookup;
         }
 
-        MethodInfo[] GetMethods() {
-            return _type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod)
-                .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any() && !x.IsPrivate)
+        MethodDefinition[] GetConstructors()
+        {
+            var methods = _type.Methods.ToList();
+            return _type.Methods.Where(m => !m.IsPrivate && !m.HasObsoleteAttribute() && m.IsConstructor && !m.IsStatic)
                 .ToArray();
         }
 
-        PropertyInfo[] GetProperties() {
-            return _type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.GetProperty | BindingFlags.SetProperty)
-                .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any())
-                .Where(y => {
-                    var get = y.GetGetMethod(true);
-                    var set = y.GetSetMethod(true);
-                    if (get != null && set != null) {
-                        return !(get.IsPrivate && set.IsPrivate);
-                    }
-                    else if (get != null) {
-                        return !get.IsPrivate;
-                    }
-                    else if (set != null) {
-                        return !set.IsPrivate;
-                    }
-                    else {
-                        return false;
-                    }
-                })
+        MethodDefinition[] GetStaticConstructors()
+        {
+            var methods = _type.Methods.ToList();
+            return _type.Methods.Where(m => !m.IsPrivate && !m.HasObsoleteAttribute() && m.IsConstructor && m.IsStatic)
                 .ToArray();
         }
 
-        FieldInfo[] GetFields() {
-            return _type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.GetField | BindingFlags.SetField)
-                .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any() && !x.IsPrivate)
+        MethodDefinition[] GetMethods() {
+            var methods = _type.Methods.ToList();
+            return _type.Methods.Where(m => !m.IsPrivate && !m.HasObsoleteAttribute() && !m.IsSpecialName && !m.IsStatic) 
+                .ToArray();
+        } 
+
+        PropertyDefinition[] GetProperties() {
+            return _type.Properties.Where(p => !p.IsSpecialName && !p.HasObsoleteAttribute())
+                .Where(p => p.GetMethod != null && !p.GetMethod.IsPrivate && !p.GetMethod.IsStatic 
+                    || p.SetMethod != null && !p.SetMethod.IsPrivate && !p.SetMethod.IsStatic)
                 .ToArray();
         }
 
-        EventInfo[] GetEvents() {
-            return _type.GetEvents(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any())
+        FieldDefinition[] GetFields() {
+            return _type.Fields.Where(f => !f.IsSpecialName && !f.HasObsoleteAttribute() && !f.IsPrivate && !f.IsStatic)
                 .ToArray();
         }
 
-        FieldInfo[] GetStaticFields() {
-            return _type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.GetField | BindingFlags.SetField)
-                .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any() && !x.IsPrivate)
+        EventDefinition[] GetEvents() {
+            return _type.Events.Where(e => !e.IsSpecialName && !e.HasObsoleteAttribute())
+                 .Where(e => e.AddMethod != null && !e.AddMethod.IsPrivate && !e.AddMethod.IsStatic
+                    || e.RemoveMethod != null && !e.RemoveMethod.IsPrivate && !e.RemoveMethod.IsStatic)
                 .ToArray();
         }
 
-        PropertyInfo[] GetStaticProperties() {
-            return _type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.GetProperty | BindingFlags.SetProperty)
-                .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any())
-                .Where(y => {
-                    var get = y.GetGetMethod(true);
-                    var set = y.GetSetMethod(true);
-                    if (get != null && set != null) {
-                        return !(get.IsPrivate && set.IsPrivate);
-                    }
-                    else if (get != null) {
-                        return !get.IsPrivate;
-                    }
-                    else if (set != null) {
-                        return !set.IsPrivate;
-                    }
-                    else {
-                        return false;
-                    }
-                })
+        FieldDefinition[] GetStaticFields() {
+            return _type.Fields.Where(f => !f.IsSpecialName && !f.HasObsoleteAttribute() && !f.IsPrivate && f.IsStatic)
                 .ToArray();
         }
 
-        MethodInfo[] GetStaticMethods() {
-            return _type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod)
-                .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any() && !x.IsPrivate)
-                .ToArray();
+        PropertyDefinition[] GetStaticProperties() {
+            return _type.Properties.Where(p => !p.IsSpecialName && !p.HasObsoleteAttribute())
+                     .Where(p => p.GetMethod != null && !p.GetMethod.IsPrivate && p.GetMethod.IsStatic
+                         || p.SetMethod != null && !p.SetMethod.IsPrivate && p.SetMethod.IsStatic)
+                     .ToArray();
         }
 
-        EventInfo[] GetStaticEvents() {
-            return _type.GetEvents(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-                .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any())
-                .ToArray();
+        MethodDefinition[] GetStaticMethods() {
+            return _type.Methods.Where(m => !m.IsPrivate && !m.HasObsoleteAttribute() && !m.IsSpecialName && m.IsStatic)
+              .ToArray();
+        }
+
+        EventDefinition[] GetStaticEvents() {
+            return _type.Events.Where(e => !e.IsSpecialName && !e.HasObsoleteAttribute())
+               .Where(e => e.AddMethod != null && !e.AddMethod.IsPrivate && e.AddMethod.IsStatic
+                  || e.RemoveMethod != null && !e.RemoveMethod.IsPrivate && e.RemoveMethod.IsStatic)
+              .ToArray();
         }
         void BuildTable<T>(MarkdownBuilder mb, string label, T[] array, IEnumerable<XmlDocumentComment> docs, Func<T, string> getTypeNameFunc, Func<T, string> getFieldNameFunc, Func<T, string> getFinalNameFunc) {
             if (array.Any()) {
@@ -197,7 +183,9 @@ namespace aistdoc
                 var classOrStructOrEnumOrInterface = _type.IsInterface ? "interface" : _type.IsEnum ? "enum" : _type.IsValueType ? "struct" : "class";
 
                 sb.AppendLine($"public {stat}{abst}{classOrStructOrEnumOrInterface} {CSharpBeautifier.BeautifyType(_type, true)}");
-                var impl = string.Join(", ", new[] { _type.BaseType }.Concat(_type.GetInterfaces()).Where(x => x != null && x != typeof(object) && x != typeof(ValueType)).Select(x => CSharpBeautifier.BeautifyType(x)));
+                var impl = string.Join(", ", new[] { _type.BaseType }.Concat(_type.Interfaces.Select(x => x.InterfaceType))
+                    .Where(x => x != null && x.FullName != "System.Object" && x.FullName != "System.ValueType")
+                    .Select(x => CSharpBeautifier.BeautifyType(x)));
                 if (impl != "") {
                     sb.AppendLine("    : " + impl);
                 }
@@ -205,25 +193,30 @@ namespace aistdoc
                 mb.Code("csharp", sb.ToString());
             }
 
+            mb.Append("Assembly: ");
+            mb.CodeQuote($"{this.AssymblyName}.dll");
             mb.AppendLine();
 
             if (_type.IsEnum) {
-                var enums = Enum.GetNames(_type)
-                    .Select(x => new { Name = x, Value = ((Int32)Enum.Parse(_type, x)) })
+                var enums = _type.Fields
+                    .Where(x => x.Name != "value__")
+                    .Select(x => new { Name = x.Name, Value = Convert.ToInt64(x.Constant) })
                     .OrderBy(x => x.Value)
                     .ToArray();
 
                 BuildTable(mb, "Enum", enums, CommentLookUp[_type.FullName], x => x.Value.ToString(), x => x.Name, x => x.Name);
             }
             else {
+                BuildTable(mb, "Constructors", GetConstructors(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.ReturnType), x => x.Name, x => CSharpBeautifier.ToMarkdownMethodInfo(x));
                 BuildTable(mb, "Fields", GetFields(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.FieldType), x => x.Name, x => x.Name);
                 BuildTable(mb, "Properties", GetProperties(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.PropertyType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Events", GetEvents(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.EventHandlerType), x => x.Name, x => x.Name);
+                BuildTable(mb, "Events", GetEvents(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.EventType), x => x.Name, x => x.Name);
                 BuildTable(mb, "Methods", GetMethods(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.ReturnType), x => x.Name, x => CSharpBeautifier.ToMarkdownMethodInfo(x));
+                BuildTable(mb, "Static Constructors", GetStaticConstructors(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.ReturnType), x => x.Name, x => CSharpBeautifier.ToMarkdownMethodInfo(x));
                 BuildTable(mb, "Static Fields", GetStaticFields(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.FieldType), x => x.Name, x => x.Name);
                 BuildTable(mb, "Static Properties", GetStaticProperties(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.PropertyType), x => x.Name, x => x.Name);
                 BuildTable(mb, "Static Methods", GetStaticMethods(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.ReturnType), x => x.Name, x => CSharpBeautifier.ToMarkdownMethodInfo(x));
-                BuildTable(mb, "Static Events", GetStaticEvents(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.EventHandlerType), x => x.Name, x => x.Name);
+                BuildTable(mb, "Static Events", GetStaticEvents(), CommentLookUp[_type.FullName], x => CSharpBeautifier.BeautifyType(x.EventType), x => x.Name, x => x.Name);
             }
 
             return mb.ToString();
@@ -232,6 +225,8 @@ namespace aistdoc
 
 
     internal static class MarkdownCSharpGenerator {
+
+
         public static MarkdownableSharpType[] Load(string dllPath, string pattern, ILogger logger) {
             var xmlPath = Path.Combine(Directory.GetParent(dllPath).FullName, Path.GetFileNameWithoutExtension(dllPath) + ".xml");
 
@@ -242,20 +237,12 @@ namespace aistdoc
             var commentsLookup = comments.ToLookup(x => x.ClassName);
 
             try {
-                var assembly = Assembly.LoadFrom(dllPath);
-
-                Type[] types = Type.EmptyTypes;
-
-                try {
-                    types = assembly.GetTypes();
-                }
-                catch (ReflectionTypeLoadException ex) {
-                    types = ex.Types.Where(t => t != null).ToArray();
-                }
-
+                var assembly = AssemblyDefinition.ReadAssembly(dllPath);
+                var types = assembly.Modules.SelectMany(m => m.Types);
+        
                 return types
                         .Where(x => x != null)
-                        .Where(x => x.IsPublic && !typeof(Delegate).IsAssignableFrom(x) && !x.GetCustomAttributes<ObsoleteAttribute>().Any())
+                        .Where(x => x.IsPublic && !x.IsDelegate() && !x.HasObsoleteAttribute())
                         .Where(x => IsRequiredNamespace(x, pattern))
                         .Select(x => new MarkdownableSharpType(x, commentsLookup))
                         .ToArray();
@@ -266,7 +253,7 @@ namespace aistdoc
             }
         }
 
-        static bool IsRequiredNamespace(Type type, string pattern) {
+        static bool IsRequiredNamespace(TypeDefinition type, string pattern) {
 
             if (string.IsNullOrEmpty(pattern)) {
                 return true;

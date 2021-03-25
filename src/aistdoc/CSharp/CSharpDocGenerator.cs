@@ -64,6 +64,7 @@ namespace aistdoc
             };
 
             var assemblyFiles = Directory.GetFiles(_srcPath).Where(isFileToProcess).ToList();
+
             foreach (var assemblyFilePath in assemblyFiles) {
                 _logger.LogInformation($"Loading assembly {assemblyFilePath}...");
                 _types.AddRange(MarkdownCSharpGenerator.Load(assemblyFilePath, _nameSpaceRegexPattern, _logger));
@@ -77,37 +78,63 @@ namespace aistdoc
 
             var dest = Directory.GetCurrentDirectory();
             int articleCount = 0;
-            foreach (var g in _types.GroupBy(x => x.Namespace).OrderBy(x => x.Key))
-            {
-                string sectionName = g.Key + " namespace";
 
-                foreach (var item in g.OrderBy(x => x.Name).Distinct(new MarkdownableTypeEqualityComparer()))
+            foreach (var asmG in _types.GroupBy(x => x.AssymblyName).OrderBy(x => x.Key))
+            {
+                var asmSectionName = asmG.Key;
+                var asmSection = new ArticleSaveModel
+                {
+                    ArticleTitle = asmSectionName,
+                    ArticleUri = asmSectionName.MakeUriFromString(),
+                    IsSection = true
+                };
+
+                if (saver.SaveArticle(asmSection)) {
+                    articleCount++;
+                };
+
+                foreach (var namespaceG in asmG.GroupBy(x => x.Namespace).OrderBy(x => x.Key))
                 {
 
-                    SetLinks(item, _types, _aistantSettings.Kb, _aistantSettings.Section.Uri, _aistantSettings.Team);
-
-                    string itemName = item.GetNameWithKind();
-
-                    string itemString = item.ToString();
-                    string itemSummary = item.GetSummary();
-
-                    bool ok = saver.SaveArticle(new ArticleSaveModel
+                    var namespaceSectionName = namespaceG.Key + " namespace";
+                    var namespaceSection = new ArticleSaveModel
                     {
-                        SectionTitle = sectionName,
-                        SectionUri = sectionName.MakeUriFromString(),
-                        ArticleTitle = itemName,
-                        ArticleUri = itemName.MakeUriFromString(),
-                        ArticleBody = itemString,
-                        ArticleExcerpt = itemSummary
-                    });
+                        SectionUri = asmSection.ArticleUri,
+                        ArticleTitle = namespaceSectionName,
+                        ArticleUri = namespaceSectionName.MakeUriFromString(),
+                        IsSection = true
+                    };
 
-                    if (ok)
+                    if (saver.SaveArticle(namespaceSection))
                     {
                         articleCount++;
+                    };
+
+
+                    foreach (var item in namespaceG.OrderBy(x => x.Name).Distinct(new MarkdownableTypeEqualityComparer()))
+                    {
+
+                        SetLinks(item, _types, _aistantSettings.Kb, _aistantSettings.Section.Uri, _aistantSettings.Team);
+
+                        string itemName = item.GetNameWithKind();
+
+                        string itemString = item.ToString();
+                        string itemSummary = item.GetSummary();
+
+                        bool ok = saver.SaveArticle(new ArticleSaveModel
+                        {
+                            SectionUri = asmSection.ArticleUri.CombineWithUri(namespaceSection.ArticleUri),
+                            ArticleTitle = itemName,
+                            ArticleUri = itemName.MakeUriFromString(),
+                            ArticleBody = itemString,
+                            ArticleExcerpt = itemSummary
+                        });
+
+                        if (ok) {
+                            articleCount++;
+                        }
                     }
                 }
-
-                articleCount++;
             }
 
             return articleCount;
@@ -124,16 +151,18 @@ namespace aistdoc
 
         private string ResolveSeeElement(Match m, List<MarkdownableSharpType> types, string kbUrl, string sectionUrl, string moniker)
         {
-            var type = m.Groups[1].Value;
+            var typeFullName = m.Groups[1].Value;
 
-            var lastIndexOfPoint = type.LastIndexOf(".");
+            var lastIndexOfPoint = typeFullName.LastIndexOf(".");
             if (lastIndexOfPoint == -1)
-                return $"`{type.Replace('`', '\'')}`";
+                return $"`{typeFullName.Replace('`', '\'')}`";
 
-            var nameSpace = type.Remove(type.LastIndexOf("."));
-            var typeName = type.Substring(type.LastIndexOf(".") + 1);
+            var nameSpace = typeFullName.Remove(typeFullName.LastIndexOf("."));
+            var typeName = typeFullName.Substring(typeFullName.LastIndexOf(".") + 1);
 
-            var foundTypeNameWithKind = types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == typeName)?.GetNameWithKind();
+            var type = types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == typeName);
+            var asmName = type?.AssymblyName ?? "";
+            var foundTypeNameWithKind = type?.GetNameWithKind();
             while (string.IsNullOrEmpty(foundTypeNameWithKind)) {
 
                 lastIndexOfPoint = nameSpace.LastIndexOf(".");
@@ -144,19 +173,21 @@ namespace aistdoc
                 typeName = nameSpace.Substring(lastIndexOfPoint + 1);
                 nameSpace = nameSpace.Remove(lastIndexOfPoint);
 
-                foundTypeNameWithKind = types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == typeName)?.GetNameWithKind();
+                type = types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == typeName);
+                asmName = type?.AssymblyName ?? "";
+                foundTypeNameWithKind = type?.GetNameWithKind();
             }
             if (string.IsNullOrEmpty(foundTypeNameWithKind)) {
-                return $"`{type.Replace('`', '\'')}`";
+                return $"`{typeFullName.Replace('`', '\'')}`";
             }
-            string url = (nameSpace + " namespace").MakeUriFromString().CombineWithUri(foundTypeNameWithKind.MakeUriFromString());
+            string url = asmName.MakeUriFromString().CombineWithUri((nameSpace + " namespace").MakeUriFromString().CombineWithUri(foundTypeNameWithKind.MakeUriFromString()));
             if (string.IsNullOrEmpty(_outputPath)) {
                 if (!string.IsNullOrEmpty(sectionUrl)) {
                     url = sectionUrl.CombineWithUri(url);
                 }
             }
 
-            return $"[{type}]({url})";
+            return $"[{typeFullName}]({url})";
         }
 
     }

@@ -43,18 +43,24 @@ namespace aistdoc {
         public bool SaveArticle(ArticleSaveModel model) {
 
             try {
-        
-                var articleDirectory = Path.Combine(_outputFolder, MakeFileNameFromTitle(model.SectionTitle));
-                Directory.CreateDirectory(articleDirectory);
 
+                var parentSection = model.SectionUri != null ? Path.Combine(_outputFolder, model.SectionUri) : _outputFolder;
+                Directory.CreateDirectory(parentSection);
+                if (model.IsSection) {
+                    var sectionDir = Path.Combine(parentSection, model.ArticleUri);
+                    Directory.CreateDirectory(sectionDir);
+                    return true;
+                }
+        
+          
                 var articleTitleAndExcerpt = "## " + model.ArticleTitle + "\n";
                 articleTitleAndExcerpt += model.ArticleExcerpt + "\n";
 
                 //section index file
-                File.AppendAllText(Path.Combine(articleDirectory, ".md"), articleTitleAndExcerpt);
+                File.AppendAllText(Path.Combine(parentSection, ".md"), model.ArticleBody);
 
                 //article file
-                var filepath = Path.Combine(articleDirectory, MakeFileNameFromTitle(model.ArticleBody)) + ".md";
+                var filepath = Path.Combine(parentSection, MakeFileNameFromTitle(model.ArticleTitle)) + ".md";
                 File.WriteAllText(filepath, model.ArticleBody);
 
                 _logger.LogInformation("Article was SAVED. Path: " + filepath);

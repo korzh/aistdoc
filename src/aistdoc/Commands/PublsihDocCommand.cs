@@ -44,8 +44,7 @@ namespace aistdoc
         public int Run()
         {
 
-            var loggerFactory = new LoggerFactory();
-            var logger = loggerFactory.AddConsole()
+            var logger = LoggerFactory.Create(b => b.AddConsole())
                 .CreateLogger("AistDoc");
 
             var builder = new ConfigurationBuilder()

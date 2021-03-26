@@ -12,7 +12,7 @@ namespace aistdoc
 
     internal static class CSharpBeautifier {
 
-        public static string BeautifyType(TypeReference t, bool isFull = false) {
+        public static string BeautifyType(TypeReference t, bool isFull = false, bool isParam = false) {
             if (t == null) return "";
             if (t.FullName == "System.Void") return "void";
             if (t.FullName == "System.Object") return "object";
@@ -21,32 +21,50 @@ namespace aistdoc
             if (t.FullName == "System.Int32") return "int";
             if (t.FullName == "System.Int64") return "long";
             if (t.FullName == "System.Double") return "double";
-     
-            if (!t.IsGenericInstance && !t.HasGenericParameters) return (isFull) ? t.FullName : t.Name;
+
+            if (!t.IsGenericInstance && !t.HasGenericParameters) {
+                return (isFull) ? t.FullName.Replace("/", ".") : (t.IsNested && !isParam) ? $"{t.DeclaringType.Name}.{t.Name}" :t.Name;
+            }
+
+            if (t.Name.StartsWith("ValueEditorXmlSerializer"))
+            { 
+            
+            }
 
             string innerFormat = "";
             if (t is GenericInstanceType genType)
             {
-                innerFormat = string.Join(", ", genType.GenericArguments.Select(x => BeautifyType(x)));
+                var args = genType.GenericArguments.ToArray();
+                innerFormat = string.Join(", ", args.Select(x => BeautifyType(x, isParam: true)));
             }
             else
             {
                 innerFormat = string.Join(", ", t.GenericParameters.Select(x => x.Name));
             }
 
-            var result =  Regex.Replace(isFull ? t.FullName : t.Name, @"`.+$", "") + "<" + innerFormat + ">";
+            var result = Regex.Replace(isFull ? t.FullName : t.Name, @"`.+$?", "") + "<" + innerFormat + ">";
             return result;
         }
 
         public static string ToMarkdownMethodInfo(MethodDefinition methodInfo) {
             var isExtension = methodInfo.HasExtensionAttribute();
 
+            if (methodInfo.DeclaringType.Name.StartsWith("EntityAttrXmlSerializer"))
+            { 
+            
+            }
+
             var seq = methodInfo.Parameters.Select(x => {
                 var suffix = x.HasDefault ? (" = " + (x.Constant ?? $"<span style='color: blue'>null</span>")) : "";
-                return "`" + BeautifyType(x.ParameterType) + "` " + x.Name + suffix;
+                return "`" + BeautifyType(x.ParameterType, isParam: true) + "` " + x.Name + suffix;
             });
 
-            return (methodInfo.IsConstructor ? methodInfo.DeclaringType.Name : methodInfo.Name) + "(" + (isExtension ? "<span style='color: blue'>this</span> " : "") + string.Join(", ", seq) + ")";
+            var beautifulMethodName = methodInfo.IsConstructor ? methodInfo.DeclaringType.Name : methodInfo.Name;
+            var index = beautifulMethodName.IndexOf("`");
+            if (index > 0)
+                beautifulMethodName = beautifulMethodName.Remove(index);
+
+            return beautifulMethodName + "(" + (isExtension ? "<span style='color: blue'>this</span> " : "") + string.Join(", ", seq) + ")";
         }
     }
 }

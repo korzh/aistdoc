@@ -23,7 +23,7 @@ namespace aistdoc
         private readonly ILogger _logger;
 
         private readonly string _srcPath;
-
+        private readonly string _packagesPath;
 
         public CSharpDocGenerator(IConfiguration configuration, ILogger logger, string outputPath = null)
         {
@@ -31,6 +31,7 @@ namespace aistdoc
             _aistantSettings = configuration.GetSection("aistant").Get<AistantSettings>();
 
             _srcPath = Path.GetFullPath(configuration.GetSection("source:path").Get<string>());
+            _packagesPath = Path.GetFullPath(configuration.GetSection("source:packages").Get<string>());
 
             _fileRegexPattern = configuration.GetSection("source:filter:assembly").Get<string>();
 
@@ -42,20 +43,51 @@ namespace aistdoc
 
         private void LoadLibraryTypes()
         {
-            Regex fileRegex = (!string.IsNullOrEmpty(_fileRegexPattern)) 
-                    ? new Regex(_fileRegexPattern) 
+            if (_packagesPath != null)
+            {
+                LoadPackages();
+            }
+            else 
+            {
+                LoadAssemblies();
+            }
+        }
+
+        private void LoadPackages()
+        {
+            Regex fileRegex = (!string.IsNullOrEmpty(_fileRegexPattern))
+                  ? new Regex(_fileRegexPattern)
+                  : null;
+
+            var packagesFiles = Directory.GetFiles(_packagesPath, "*.nupkg");
+
+            foreach (var packageFilePath in packagesFiles) {
+                _logger.LogInformation($"Loading package {packageFilePath}...");
+                var package = NugetPackage.Load(packageFilePath, fileRegex);
+                _types.AddRange(MarkdownCSharpGenerator.LoadFromPackage(package, _nameSpaceRegexPattern, _logger));
+            }
+        }
+
+        private void LoadAssemblies()
+        {
+            Regex fileRegex = (!string.IsNullOrEmpty(_fileRegexPattern))
+                    ? new Regex(_fileRegexPattern)
                     : null;
 
             //Finds all dll files with current pattern
-            Func<string, bool> isFileToProcess = (s) => {
+            Func<string, bool> isFileToProcess = (s) =>
+            {
 
-                if (!s.EndsWith(".dll")) {
+                if (!s.EndsWith(".dll"))
+                {
                     return false;
                 }
 
-                if (fileRegex != null) {
+                if (fileRegex != null)
+                {
                     var fileName = s.Substring(s.LastIndexOf("\\") + 1);
-                    if (!fileRegex.IsMatch(fileName)) {
+                    if (!fileRegex.IsMatch(fileName))
+                    {
                         return false;
                     }
                 }
@@ -65,9 +97,10 @@ namespace aistdoc
 
             var assemblyFiles = Directory.GetFiles(_srcPath).Where(isFileToProcess).ToList();
 
-            foreach (var assemblyFilePath in assemblyFiles) {
+            foreach (var assemblyFilePath in assemblyFiles)
+            {
                 _logger.LogInformation($"Loading assembly {assemblyFilePath}...");
-                _types.AddRange(MarkdownCSharpGenerator.Load(assemblyFilePath, _nameSpaceRegexPattern, _logger));
+                _types.AddRange(MarkdownCSharpGenerator.LoadFromAssembly(assemblyFilePath, _nameSpaceRegexPattern, _logger));
             }
         }
 
@@ -79,27 +112,29 @@ namespace aistdoc
             var dest = Directory.GetCurrentDirectory();
             int articleCount = 0;
 
-            foreach (var asmG in _types.GroupBy(x => x.AssymblyName).OrderBy(x => x.Key))
+            foreach (var packageG in _types.GroupBy(x => x.Package).OrderBy(x => x.Key?.Name))
             {
-                var asmSectionName = asmG.Key;
-                var asmSection = new ArticleSaveModel
+                var packageSectionName = packageG.Key?.Name;
+                var packageSection = packageSectionName != null ? new ArticleSaveModel
                 {
-                    ArticleTitle = asmSectionName,
-                    ArticleUri = asmSectionName.MakeUriFromString(),
+                    ArticleTitle = packageSectionName,
+                    ArticleUri = packageSectionName.MakeUriFromString(),
+                    ArticleBody = packageG.Key.Description,
+                    ArticleExcerpt = packageG.Key.Description,
                     IsSection = true
-                };
+                } : null;
 
-                if (saver.SaveArticle(asmSection)) {
+                if (packageSection != null && saver.SaveArticle(packageSection)) {
                     articleCount++;
                 };
 
-                foreach (var namespaceG in asmG.GroupBy(x => x.Namespace).OrderBy(x => x.Key))
+                foreach (var namespaceG in packageG.GroupBy(x => x.Namespace).OrderBy(x => x.Key))
                 {
 
                     var namespaceSectionName = namespaceG.Key + " namespace";
                     var namespaceSection = new ArticleSaveModel
                     {
-                        SectionUri = asmSection.ArticleUri,
+                        SectionUri = packageSection?.ArticleUri,
                         ArticleTitle = namespaceSectionName,
                         ArticleUri = namespaceSectionName.MakeUriFromString(),
                         IsSection = true
@@ -123,7 +158,7 @@ namespace aistdoc
 
                         bool ok = saver.SaveArticle(new ArticleSaveModel
                         {
-                            SectionUri = asmSection.ArticleUri.CombineWithUri(namespaceSection.ArticleUri),
+                            SectionUri = packageSection.ArticleUri.CombineWithUri(namespaceSection.ArticleUri),
                             ArticleTitle = itemName,
                             ArticleUri = itemName.MakeUriFromString(),
                             ArticleBody = itemString,
@@ -142,10 +177,8 @@ namespace aistdoc
 
         private void SetLinks(MarkdownableSharpType type, List<MarkdownableSharpType> types, string kbUrl, string sectionUrl, string moniker)
         {
-            foreach (var comments in type.CommentLookUp) {
-                foreach (var comment in comments) {
-                    comment.Summary = Regex.Replace(comment.Summary, @"<see cref=""\w:([^\""]*)""\s*\/>", m => ResolveSeeElement(m, types, kbUrl, sectionUrl, moniker));
-                }
+            foreach (var comment in type.Comments) {
+                comment.Summary = Regex.Replace(comment.Summary, @"<see cref=""\w:([^\""]*)""\s*\/>", m => ResolveSeeElement(m, types, kbUrl, sectionUrl, moniker));
             }
         }
 
@@ -161,7 +194,7 @@ namespace aistdoc
             var typeName = typeFullName.Substring(typeFullName.LastIndexOf(".") + 1);
 
             var type = types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == typeName);
-            var asmName = type?.AssymblyName ?? "";
+            var packageName = type?.PackageName ?? "";
             var foundTypeNameWithKind = type?.GetNameWithKind();
             while (string.IsNullOrEmpty(foundTypeNameWithKind)) {
 
@@ -174,13 +207,13 @@ namespace aistdoc
                 nameSpace = nameSpace.Remove(lastIndexOfPoint);
 
                 type = types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == typeName);
-                asmName = type?.AssymblyName ?? "";
+                packageName = type?.PackageName ?? "";
                 foundTypeNameWithKind = type?.GetNameWithKind();
             }
             if (string.IsNullOrEmpty(foundTypeNameWithKind)) {
                 return $"`{typeFullName.Replace('`', '\'')}`";
             }
-            string url = asmName.MakeUriFromString().CombineWithUri((nameSpace + " namespace").MakeUriFromString().CombineWithUri(foundTypeNameWithKind.MakeUriFromString()));
+            string url = packageName.MakeUriFromString().CombineWithUri((nameSpace + " namespace").MakeUriFromString().CombineWithUri(foundTypeNameWithKind.MakeUriFromString()));
             if (string.IsNullOrEmpty(_outputPath)) {
                 if (!string.IsNullOrEmpty(sectionUrl)) {
                     url = sectionUrl.CombineWithUri(url);

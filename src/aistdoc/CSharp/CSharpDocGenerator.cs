@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 
 using Aistant.KbService;
 
-
 namespace aistdoc
 {
     internal class CSharpDocGenerator : IDocGenerator
@@ -59,12 +58,17 @@ namespace aistdoc
                   ? new Regex(_fileRegexPattern)
                   : null;
 
+            var library = new CSharpLibrary();
+            library.RootPath = _aistantSettings?.Section?.Uri ?? "";
             var packagesFiles = Directory.GetFiles(_packagesPath, "*.nupkg");
-
             foreach (var packageFilePath in packagesFiles) {
                 _logger.LogInformation($"Loading package {packageFilePath}...");
                 var package = NugetPackage.Load(packageFilePath, fileRegex);
-                _types.AddRange(MarkdownCSharpGenerator.LoadFromPackage(package, _nameSpaceRegexPattern, _logger));
+                library.Packages.Add(package);
+                _types.AddRange(MarkdownCSharpGenerator.LoadFromPackage(library, package, _nameSpaceRegexPattern, _logger));
+            }
+            foreach (var type in _types) {
+                library.Types.TryAdd(type.ClrType.FullName, type);
             }
         }
 
@@ -95,12 +99,18 @@ namespace aistdoc
                 return true;
             };
 
-            var assemblyFiles = Directory.GetFiles(_srcPath).Where(isFileToProcess).ToList();
+            var library = new CSharpLibrary();
+            library.RootPath = _aistantSettings?.Section?.Uri ?? "";
 
+            var assemblyFiles = Directory.GetFiles(_srcPath).Where(isFileToProcess).ToList();
             foreach (var assemblyFilePath in assemblyFiles)
             {
                 _logger.LogInformation($"Loading assembly {assemblyFilePath}...");
-                _types.AddRange(MarkdownCSharpGenerator.LoadFromAssembly(assemblyFilePath, _nameSpaceRegexPattern, _logger));
+                _types.AddRange(MarkdownCSharpGenerator.LoadFromAssembly(library, assemblyFilePath, _nameSpaceRegexPattern, _logger));
+            }
+            foreach (var type in _types)
+            {
+                library.Types.TryAdd(type.ClrType.FullName, type);
             }
         }
 

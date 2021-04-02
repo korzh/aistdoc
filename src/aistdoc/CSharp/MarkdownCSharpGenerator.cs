@@ -29,8 +29,16 @@ namespace aistdoc
         }
     }
 
+    internal class CSharpLibrary
+    {
+        public string RootPath { get; set; }
+        public readonly List<NugetPackage> Packages = new List<NugetPackage>();
+        public readonly Dictionary<string, MarkdownableSharpType> Types = new Dictionary<string, MarkdownableSharpType>();
+    }
+
     internal class MarkdownableSharpType {
 
+        private readonly CSharpLibrary _library;
         private readonly NugetPackage _package;
         private readonly TypeDefinition _type;
 
@@ -42,6 +50,8 @@ namespace aistdoc
 
         public NugetPackage Package => _package;
 
+        public TypeDefinition ClrType => _type;
+
         public string PackageName => _package?.Name;
 
         public string[] TargetFrameworks { get; }
@@ -52,12 +62,13 @@ namespace aistdoc
                 ? CSharpTypeKind.Struct : CSharpTypeKind.Class;
         public string BeautifyName => CSharpBeautifier.BeautifyType(_type);
 
-        public MarkdownableSharpType(TypeDefinition type, IEnumerable<XmlDocumentComment> comments): this(null, type, new string[] { }, comments) {
+        public MarkdownableSharpType(CSharpLibrary library, TypeDefinition type, IEnumerable<XmlDocumentComment> comments): this(library, null, type, new string[] { }, comments) {
           
         }
 
-        public MarkdownableSharpType(NugetPackage package, TypeDefinition type, string[] targetFrameworks, IEnumerable<XmlDocumentComment> comments)
+        public MarkdownableSharpType(CSharpLibrary library, NugetPackage package, TypeDefinition type, string[] targetFrameworks, IEnumerable<XmlDocumentComment> comments)
         {
+            _library = library;
             _package = package;
             _type = type;
             Comments = comments;
@@ -125,8 +136,8 @@ namespace aistdoc
                 mb.AppendLine();
 
                 string[] head = (this._type.IsEnum)
-                    ? new[] { "Value", "Name", "Description" }
-                    : new[] { "Type", "Name", "Description" };
+                    ? new[] { "Name", "Value", "Description" }
+                    : new[] { "Name", "Type", "Description" };
 
                // IEnumerable<T> seq = array;
                 if (!_type.IsEnum) {
@@ -144,7 +155,7 @@ namespace aistdoc
                     catch {
                         typeName = "[Unknown type]";
                     }
-                    return new[] { MarkdownBuilder.MarkdownCodeQuote(typeName), getFinalNameFunc(item2), summary };
+                    return new[] { getFinalNameFunc(item2), typeName, summary };
 
                 }); 
 
@@ -154,16 +165,12 @@ namespace aistdoc
             }
         }
 
-        public string GetFixedGenericTypeName() {
-            return CSharpBeautifier.BeautifyType(_type);
-        }
-
         public string GetKindName() {
             return Kind.ToString();
         }
 
         public string GetNameWithKind() {
-            return GetFixedGenericTypeName() + " "+ GetKindName().ToLower();
+            return BeautifyName + " "+ GetKindName().ToLower();
         }
 
         public string GetSummary() {
@@ -206,24 +213,26 @@ namespace aistdoc
                 mb.Code("csharp", sb.ToString());
             }
 
+            if (_package != null) {
+                mb.Append("Package: ");
+                mb.CodeQuote(_package.Name);
+
+                if (TargetFrameworks.Any()) {
+                    mb.Append(" (targets: ");
+                    mb.Append(string.Join(", ", TargetFrameworks.Select(tfm => MarkdownBuilder.MarkdownCodeQuote(tfm))));
+                    mb.Append(")");
+                }
+
+                mb.AppendLine();
+                mb.AppendLine();
+            }
+
+
             mb.Append("Assembly: ");
             mb.CodeQuote($"{this.AssymblyName}.dll");
             mb.AppendLine();
             mb.AppendLine();
 
-            if (_package != null) {
-                mb.Append("Package: ");
-                mb.CodeQuote(_package.Name);
-                mb.AppendLine();
-                mb.AppendLine();
-
-                if (TargetFrameworks.Any()) {
-                    mb.Append("Target Frameworks: ");
-                    mb.Append(string.Join(", ", TargetFrameworks.Select(tfm => MarkdownBuilder.MarkdownCodeQuote(tfm))));
-                    mb.AppendLine();
-                    mb.AppendLine();
-                }
-            }
 
             if (_type.IsEnum) {
                 var enums = _type.Fields
@@ -232,30 +241,37 @@ namespace aistdoc
                     .OrderBy(x => x.Value)
                     .ToArray();
 
-                BuildTable(mb, "Enum", enums, Comments, x => x.Value.ToString(), x => x.Name, x => x.Name);
+                BuildTable(mb, "Enum", enums, Comments, x => MarkdownBuilder.MarkdownCodeQuote(x.Value.ToString()), x => x.Name, x => x.Name);
             }
             else {
-                BuildTable(mb, "Constructors", GetConstructors(), Comments, x => CSharpBeautifier.BeautifyType(x.ReturnType), x => x.Name, x => CSharpBeautifier.ToMarkdownMethodInfo(x));
-                BuildTable(mb, "Fields", GetFields(), Comments, x => CSharpBeautifier.BeautifyType(x.FieldType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Properties", GetProperties(), Comments, x => CSharpBeautifier.BeautifyType(x.PropertyType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Events", GetEvents(), Comments, x => CSharpBeautifier.BeautifyType(x.EventType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Methods", GetMethods(), Comments, x => CSharpBeautifier.BeautifyType(x.ReturnType), x => x.Name, x => CSharpBeautifier.ToMarkdownMethodInfo(x));
-                BuildTable(mb, "Static Fields", GetStaticFields(), Comments, x => CSharpBeautifier.BeautifyType(x.FieldType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Static Properties", GetStaticProperties(), Comments, x => CSharpBeautifier.BeautifyType(x.PropertyType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Static Methods", GetStaticMethods(), Comments, x => CSharpBeautifier.BeautifyType(x.ReturnType), x => x.Name, x => CSharpBeautifier.ToMarkdownMethodInfo(x));
-                BuildTable(mb, "Static Events", GetStaticEvents(), Comments, x => CSharpBeautifier.BeautifyType(x.EventType), x => x.Name, x => x.Name);
+                BuildTable(mb, "Constructors", GetConstructors(), Comments, x => CSharpBeautifier.ToMarkdownTypeReference(_library, x.ReturnType), x => x.Name, x => CSharpBeautifier.ToMarkdownMethodInfo(_library, x));
+                BuildTable(mb, "Fields", GetFields(), Comments, x => CSharpBeautifier.ToMarkdownTypeReference(_library, x.FieldType), x => x.Name, x => x.Name);
+                BuildTable(mb, "Properties", GetProperties(), Comments, x => CSharpBeautifier.ToMarkdownTypeReference(_library, x.PropertyType), x => x.Name, x => x.Name);
+                BuildTable(mb, "Events", GetEvents(), Comments, x => CSharpBeautifier.ToMarkdownTypeReference(_library, x.EventType), x => x.Name, x => x.Name);
+                BuildTable(mb, "Methods", GetMethods(), Comments, x => CSharpBeautifier.ToMarkdownTypeReference(_library, x.ReturnType), x => x.Name, x => CSharpBeautifier.ToMarkdownMethodInfo(_library, x));
+                BuildTable(mb, "Static Fields", GetStaticFields(), Comments, x => CSharpBeautifier.ToMarkdownTypeReference(_library, x.FieldType), x => x.Name, x => x.Name);
+                BuildTable(mb, "Static Properties", GetStaticProperties(), Comments, x => CSharpBeautifier.ToMarkdownTypeReference(_library, x.PropertyType), x => x.Name, x => x.Name);
+                BuildTable(mb, "Static Methods", GetStaticMethods(), Comments, x => CSharpBeautifier.ToMarkdownTypeReference(_library, x.ReturnType), x => x.Name, x => CSharpBeautifier.ToMarkdownMethodInfo(_library, x));
+                BuildTable(mb, "Static Events", GetStaticEvents(), Comments, x => CSharpBeautifier.ToMarkdownTypeReference(_library, x.EventType), x => x.Name, x => x.Name);
             }
 
             return mb.ToString();
+        }
+
+        public string GetPath() 
+        {
+            return _library.RootPath
+                .CombineWithUri(PackageName.MakeUriFromString())
+                .CombineWithUri((Namespace + " namespace").MakeUriFromString())
+                .CombineWithUri(GetNameWithKind().MakeUriFromString());
         }
     }
 
 
     internal static class MarkdownCSharpGenerator {
 
-        public static MarkdownableSharpType[] LoadFromPackage(NugetPackage package, string pattern, ILogger logger)
+        public static MarkdownableSharpType[] LoadFromPackage(CSharpLibrary library, NugetPackage package, string pattern, ILogger logger)
         {
-
             var result = new List<MarkdownableSharpType>();
             var groups = package.Assemblies.GroupBy(a => a.Assembly.Name.Name);
             foreach (var g in groups) {
@@ -280,16 +296,15 @@ namespace aistdoc
                 }
 
                 foreach (var typeInfo in dict.Values) {
-                    result.Add(new MarkdownableSharpType(package, typeInfo.Type, typeInfo.Targets.ToArray(), typeInfo.Comments));
+                    result.Add(new MarkdownableSharpType(library, package, typeInfo.Type, typeInfo.Targets.ToArray(), typeInfo.Comments));
                 }
-               
             }
 
             return result.ToArray();
 
         }
 
-        public static MarkdownableSharpType[] LoadFromAssembly(string dllPath, string pattern, ILogger logger) {
+        public static MarkdownableSharpType[] LoadFromAssembly(CSharpLibrary library, string dllPath, string pattern, ILogger logger) {
             var xmlPath = Path.Combine(Directory.GetParent(dllPath).FullName, Path.GetFileNameWithoutExtension(dllPath) + ".xml");
 
             XmlDocumentComment[] comments = new XmlDocumentComment[0];
@@ -306,7 +321,7 @@ namespace aistdoc
                         .Where(x => x != null)
                         .Where(x => x.IsPublic && !x.IsDelegate() && !x.HasObsoleteAttribute())
                         .Where(x => IsRequiredNamespace(x, pattern))
-                        .Select(x => new MarkdownableSharpType(x, comments.Where(c => c.ClassName == x.FullName)))
+                        .Select(x => new MarkdownableSharpType(library, x, comments.Where(c => c.ClassName == x.FullName)))
                         .ToArray();
             }
             catch (Exception ex) {

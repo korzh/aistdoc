@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 
 using Aistant.KbService;
 
-
 namespace aistdoc
 {
     internal class CSharpDocGenerator : IDocGenerator
@@ -23,14 +22,21 @@ namespace aistdoc
         private readonly ILogger _logger;
 
         private readonly string _srcPath;
-
+        private readonly string _packagesPath;
 
         public CSharpDocGenerator(IConfiguration configuration, ILogger logger, string outputPath = null)
         {
             _outputPath = outputPath;
             _aistantSettings = configuration.GetSection("aistant").Get<AistantSettings>();
 
-            _srcPath = Path.GetFullPath(configuration.GetSection("source:path").Get<string>());
+            var srcPath = configuration.GetSection("source:path").Get<string>();
+            _srcPath = srcPath != null ? Path.GetFullPath(srcPath) : null;
+
+            var packagesPath = configuration.GetSection("source:packages").Get<string>();
+            _packagesPath = packagesPath != null? Path.GetFullPath(packagesPath) : null;
+
+            if (_srcPath == null && _packagesPath == null)
+                throw new Exception("source.path or source.packages is required");
 
             _fileRegexPattern = configuration.GetSection("source:filter:assembly").Get<string>();
 
@@ -42,20 +48,56 @@ namespace aistdoc
 
         private void LoadLibraryTypes()
         {
-            Regex fileRegex = (!string.IsNullOrEmpty(_fileRegexPattern)) 
-                    ? new Regex(_fileRegexPattern) 
+            if (_packagesPath != null)
+            {
+                LoadPackages();
+            }
+            else 
+            {
+                LoadAssemblies();
+            }
+        }
+
+        private void LoadPackages()
+        {
+            Regex fileRegex = (!string.IsNullOrEmpty(_fileRegexPattern))
+                  ? new Regex(_fileRegexPattern)
+                  : null;
+
+            var library = new CSharpLibrary();
+            library.RootPath = _aistantSettings?.Section?.Uri ?? "";
+            var packagesFiles = Directory.GetFiles(_packagesPath, "*.nupkg");
+            foreach (var packageFilePath in packagesFiles) {
+                _logger.LogInformation($"Loading package {packageFilePath}...");
+                var package = NugetPackage.Load(packageFilePath, fileRegex);
+                library.Packages.Add(package);
+                _types.AddRange(MarkdownCSharpGenerator.LoadFromPackage(library, package, _nameSpaceRegexPattern, _logger));
+            }
+            foreach (var type in _types) {
+                library.Types.TryAdd(type.ClrType.FullName, type);
+            }
+        }
+
+        private void LoadAssemblies()
+        {
+            Regex fileRegex = (!string.IsNullOrEmpty(_fileRegexPattern))
+                    ? new Regex(_fileRegexPattern)
                     : null;
 
             //Finds all dll files with current pattern
-            Func<string, bool> isFileToProcess = (s) => {
+            Func<string, bool> isFileToProcess = (s) =>
+            {
 
-                if (!s.EndsWith(".dll")) {
+                if (!s.EndsWith(".dll"))
+                {
                     return false;
                 }
 
-                if (fileRegex != null) {
+                if (fileRegex != null)
+                {
                     var fileName = s.Substring(s.LastIndexOf("\\") + 1);
-                    if (!fileRegex.IsMatch(fileName)) {
+                    if (!fileRegex.IsMatch(fileName))
+                    {
                         return false;
                     }
                 }
@@ -63,10 +105,18 @@ namespace aistdoc
                 return true;
             };
 
+            var library = new CSharpLibrary();
+            library.RootPath = _aistantSettings?.Section?.Uri ?? "";
+
             var assemblyFiles = Directory.GetFiles(_srcPath).Where(isFileToProcess).ToList();
-            foreach (var assemblyFilePath in assemblyFiles) {
+            foreach (var assemblyFilePath in assemblyFiles)
+            {
                 _logger.LogInformation($"Loading assembly {assemblyFilePath}...");
-                _types.AddRange(MarkdownCSharpGenerator.Load(assemblyFilePath, _nameSpaceRegexPattern, _logger));
+                _types.AddRange(MarkdownCSharpGenerator.LoadFromAssembly(library, assemblyFilePath, _nameSpaceRegexPattern, _logger));
+            }
+            foreach (var type in _types)
+            {
+                library.Types.TryAdd(type.ClrType.FullName, type);
             }
         }
 
@@ -77,33 +127,63 @@ namespace aistdoc
 
             var dest = Directory.GetCurrentDirectory();
             int articleCount = 0;
-            foreach (var namespaceGroup in _types.GroupBy(x => x.Namespace).OrderBy(x => x.Key)) {
-                string sectionName = namespaceGroup.Key + " namespace";
-                var csharpTypes = namespaceGroup.OrderBy(x => x.Name).Distinct(new MarkdownableTypeEqualityComparer());
 
-                foreach (var item in csharpTypes) {
-                    SetLinks(item, _types, _aistantSettings.Kb, _aistantSettings.Section.Uri, _aistantSettings.Team);
+            var packageGroups = _types.GroupBy(x => x.Package).OrderBy(x => x.Key?.Name);
+            foreach (var packageGroup in packageGroups) {
+                var packageSectionName = packageGroup.Key?.Name;
+                var packageSection = packageSectionName != null 
+                    ? new ArticlePublishModel {
+                            ArticleTitle = packageSectionName,
+                            ArticleUri = packageSectionName.MakeUriFromString(),
+                            ArticleBody = packageGroup.Key.Description,
+                            ArticleExcerpt = packageGroup.Key.Description,
+                            IsSection = true
+                        } 
+                    : null;
 
-                    string itemName = item.GetNameWithKind();
+                if (packageSection != null && publisher.PublishArticle(packageSection)) {
+                    articleCount++;
+                };
 
-                    string itemString = item.ToString();
-                    string itemSummary = item.GetSummary();
+                var namespaceGroups = packageGroup.GroupBy(x => x.Namespace).OrderBy(x => x.Key);
 
-                    bool ok = publisher.PublishArticle(new ArticlePublishModel {
-                        SectionTitle = sectionName,
-                        SectionUri = sectionName.MakeUriFromString(),
-                        ArticleTitle = itemName,
-                        ArticleUri = itemName.MakeUriFromString(),
-                        ArticleBody = itemString,
-                        ArticleExcerpt = itemSummary
-                    });
+                foreach (var namespaceGroup in namespaceGroups) {
+                    var namespaceSectionName = namespaceGroup.Key + " namespace";
+                    var namespaceSection = new ArticlePublishModel {
+                        SectionUri = packageSection?.ArticleUri,
+                        ArticleTitle = namespaceSectionName,
+                        ArticleUri = namespaceSectionName.MakeUriFromString(),
+                        IsSection = true
+                    };
 
-                    if (ok) {
+                    if (publisher.PublishArticle(namespaceSection)) {
                         articleCount++;
+                    };
+
+
+                    var namespaceTypes = namespaceGroup.OrderBy(x => x.Name).Distinct(new MarkdownableTypeEqualityComparer());
+                    foreach (var item in namespaceTypes) {
+
+                        SetLinks(item, _types, _aistantSettings.Kb, _aistantSettings.Section.Uri, _aistantSettings.Team);
+
+                        string itemName = item.GetNameWithKind();
+
+                        string itemString = item.ToString();
+                        string itemSummary = item.GetSummary();
+
+                        bool ok = publisher.PublishArticle(new ArticlePublishModel {
+                            SectionUri = packageSection?.ArticleUri.CombineWithUri(namespaceSection.ArticleUri) ?? namespaceSection.ArticleUri,
+                            ArticleTitle = itemName,
+                            ArticleUri = itemName.MakeUriFromString(),
+                            ArticleBody = itemString,
+                            ArticleExcerpt = itemSummary
+                        });
+
+                        if (ok) {
+                            articleCount++;
+                        }
                     }
                 }
-
-                articleCount++;
             }
 
             return articleCount;
@@ -111,26 +191,25 @@ namespace aistdoc
 
         private void SetLinks(MarkdownableSharpType type, List<MarkdownableSharpType> types, string kbUrl, string sectionUrl, string moniker)
         {
-            foreach (var comments in type.CommentLookUp) {
-                foreach (var comment in comments) {
-                    comment.Summary = Regex.Replace(comment.Summary, @"<see cref=""\w:([^\""]*)""\s*\/>", m => ResolveSeeElement(m, types, kbUrl, sectionUrl, moniker));
-                }
+            foreach (var comment in type.Comments) {
+                comment.Summary = Regex.Replace(comment.Summary, @"<see cref=""\w:([^\""]*)""\s*\/>", m => ResolveSeeElement(m, types, kbUrl, sectionUrl, moniker));
             }
         }
 
         private string ResolveSeeElement(Match m, List<MarkdownableSharpType> types, string kbUrl, string sectionUrl, string moniker)
         {
-            var type = m.Groups[1].Value;
+            var typeFullName = m.Groups[1].Value;
 
-            var lastIndexOfPoint = type.LastIndexOf(".");
+            var lastIndexOfPoint = typeFullName.LastIndexOf(".");
             if (lastIndexOfPoint == -1)
-                return $"`{type.Replace('`', '\'')}`";
+                return $"`{typeFullName.Replace('`', '\'')}`";
 
-            var nameSpace = type.Remove(type.LastIndexOf("."));
-            var typeName = type.Substring(type.LastIndexOf(".") + 1);
+            var nameSpace = typeFullName.Remove(typeFullName.LastIndexOf("."));
+            var typeName = typeFullName.Substring(typeFullName.LastIndexOf(".") + 1);
 
-            var foundTypeNameWithKind = types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == typeName)?.GetNameWithKind();
-
+            var type = types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == typeName);
+            var packageName = type?.PackageName ?? "";
+            var foundTypeNameWithKind = type?.GetNameWithKind();
             while (string.IsNullOrEmpty(foundTypeNameWithKind)) {
                 lastIndexOfPoint = nameSpace.LastIndexOf(".");
 
@@ -140,21 +219,22 @@ namespace aistdoc
                 typeName = nameSpace.Substring(lastIndexOfPoint + 1);
                 nameSpace = nameSpace.Remove(lastIndexOfPoint);
 
-                foundTypeNameWithKind = types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == typeName)?.GetNameWithKind();
+                type = types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == typeName);
+                packageName = type?.PackageName ?? "";
+                foundTypeNameWithKind = type?.GetNameWithKind();
             }
 
             if (string.IsNullOrEmpty(foundTypeNameWithKind)) {
-                return $"`{type.Replace('`', '\'')}`";
+                return $"`{typeFullName.Replace('`', '\'')}`";
             }
-
-            string url = (nameSpace + " namespace").MakeUriFromString().CombineWithUri(foundTypeNameWithKind.MakeUriFromString());
+            string url = packageName.MakeUriFromString().CombineWithUri((nameSpace + " namespace").MakeUriFromString().CombineWithUri(foundTypeNameWithKind.MakeUriFromString()));
             if (string.IsNullOrEmpty(_outputPath)) {
                 if (!string.IsNullOrEmpty(sectionUrl)) {
                     url = sectionUrl.CombineWithUri(url);
                 }
             }
 
-            return $"[{type}]({url})";
+            return $"[{typeFullName}]({url})";
         }
     }
 }

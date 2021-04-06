@@ -14,7 +14,7 @@ namespace aistdoc
             var dict = new Dictionary<int, string>();
 
             System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            Console.WriteLine($"aistdoc utility {assembly.GetName().Version.ToString()} (c) Aistant 2018-2020");
+            Console.WriteLine($"aistdoc utility {assembly.GetName().Version.ToString()} (c) Aistant 2018-2021");
             Console.WriteLine("Current folder: " + Directory.GetCurrentDirectory());
 
             var app = new CommandLineApplication();

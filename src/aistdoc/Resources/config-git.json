@@ -1,0 +1,95 @@
+{
+  "aistant": {
+    // The username (email) and the password of your account in Aistant. Required.
+    "username": "",
+    "password": "",
+
+    // Your team ID (subdomain) in Aistant. Required.
+    "team": "sample",
+
+    // Your knowledge base ID. Required.
+    "kb": "sample-kb",
+
+    // The root section, to which the created articles will be add. Optional.
+    // If it does not exists - aistdoc will create a new one with the specified "uri" and "title"
+    "section": {
+      "uri": "api-reference",
+      "title": "API reference"
+    },
+
+    // This options indicates whether we need to create a new version for each uploaded article.
+    // If false - the latest version will be replaced. Optional, default: true.
+    "addVersion": true,
+
+    //mIndicates whether the utility should publish new articles after the upload. Optional, default: true.
+    "publish": true
+  },
+
+  // Your git settings
+  // This settings may contain several projects and several credentials for them
+  "git": {
+
+    // Array of credentials
+    "credentials": [
+      {
+        "id": "default",
+
+        "userName": "my_UserName",
+        "password": "my_Password",
+
+        // you can use access token instead of userName and password
+        "accessToken": "PAT",
+
+        //indicates wether this credential will be used as default, if reporsitory section 
+        // does not have credentialId defined.
+        "default": true
+      }
+    ],
+
+    // Array of projects
+    "projects": [
+      {
+        // project id
+        "id": "my_project_id",
+
+        //project tag
+        "tag": "my_project_tag",
+
+        // title template for version changes
+        "titleTemplate": "Version ${VersionNum}",
+
+        // change description template
+        "logItemTemplate": "__[${ItemType}]__: ${ItemTitle}    ${ItemDescription}\n",
+
+        // release date template
+        "dateItemTemplate": "${ReleasedDate}\n",
+
+        // skip title with version
+        "skipVersionHeading": false,
+
+        //changelog url for Aistant
+        "changelog": "",
+
+        // repositories of the current project
+        "repositories": [
+          {
+            // credentials
+            "credentialId": "default",
+
+            // local path
+            "path": "my_path",
+
+            // git repo remote url
+            "url": "",
+
+            // the branch
+            "branch": "master",
+
+            // clones repo from remote url if path does not exist
+            "cloneIfNotExist": "false"
+          }
+        ]
+      }
+    ]
+  }
+}

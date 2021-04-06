@@ -29,14 +29,18 @@
   "source": {
 
     //current lang
-    "mode":  "csharp",
+    "mode": "csharp",
 
     // The path to the folder where your library's assemblies (DLLs) and XML documentation files are stored. Required.
     "path": "C:\\Projects\\Test\\publish",
 
+    // The path to the folder where your library's packages (.nupkg) are stored. Required.
+    // "packages": "C:\\Projects\\Test\\packages",
+
     // Here you can define a filter for the assemblies and namespaces you would like to process
     // You can user regular expressions for both 'assebmly' and 'namespace' filters.
     // It's better to define at least one of them to skip the code that is not yours
+    // You can ignore it if you use packages instead of DLLs
     "filter": {
       "assembly": "^YourAssemblyName",
 

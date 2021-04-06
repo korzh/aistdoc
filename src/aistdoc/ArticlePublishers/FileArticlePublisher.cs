@@ -23,23 +23,27 @@ namespace aistdoc
                 Directory.Delete(_outputFolder, true);
                 Directory.CreateDirectory(_outputFolder);
             }
-        }
-
-
+        }     
+          
         public bool PublishArticle(ArticlePublishModel model) 
         {
-            try {        
-                var articleDirectory = Path.Combine(_outputFolder, MakeFileNameFromTitle(model.SectionTitle));
-                Directory.CreateDirectory(articleDirectory);
+            try {
+                var parentSection = model.SectionUri != null ? Path.Combine(_outputFolder, model.SectionUri) : _outputFolder;
+                Directory.CreateDirectory(parentSection);
+                if (model.IsSection) {
+                    var sectionDir = Path.Combine(parentSection, model.ArticleUri);
+                    Directory.CreateDirectory(sectionDir);
+                    return true;
+                }
 
                 var articleTitleAndExcerpt = "## " + model.ArticleTitle + "\n";
                 articleTitleAndExcerpt += model.ArticleExcerpt + "\n";
 
                 //section index file
-                File.AppendAllText(Path.Combine(articleDirectory, "$index.md"), articleTitleAndExcerpt);
+                File.AppendAllText(Path.Combine(parentSection, "$index.md"), articleTitleAndExcerpt);
 
                 //article file
-                var filepath = Path.Combine(articleDirectory, MakeFileNameFromTitle(model.ArticleTitle)) + ".md";
+                var filepath = Path.Combine(parentSection, MakeFileNameFromTitle(model.ArticleTitle)) + ".md";
                 File.WriteAllText(filepath, model.ArticleBody);
 
                 _logger.LogInformation("Article was published. Path: " + filepath);

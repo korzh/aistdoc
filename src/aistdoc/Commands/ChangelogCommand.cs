@@ -86,6 +86,8 @@ namespace aistdoc
         public string DateItemTemplate { get; set; } = "<div class=\"aist-article-updated\"><span>${ReleasedDate}</span></div>\n";
         public string PrevVersion { get; set; } = "";
         public string NewVersion { get; set; } = "";
+
+        public bool SkipVersionHeading { get; set; } = false;
         public string Changelog { get; set; }
         public List<RepositorySettings> Repositories { get; set; } = new List<RepositorySettings>();
     }
@@ -373,15 +375,17 @@ namespace aistdoc
 
         private string BuildReleaseNotes(ProjectSettings project, Dictionary<string, List<CommitWithType>> commitGroups)
         {
-
             var mb = new MarkdownBuilder();
-            var title = project.TitleTemplate
-                .Replace("${VersionNum}", Version ?? project.NewVersion);
+            if (!project.SkipVersionHeading) {
+                var title = project.TitleTemplate
+                    .Replace("${VersionNum}", Version ?? project.NewVersion);
 
-            mb.Header(2, title);
-            mb.AppendLine();
+                mb.Header(2, title);
+                mb.AppendLine();
+            }
             if (!string.IsNullOrEmpty(project.DateItemTemplate))
                 mb.AppendLine(project.DateItemTemplate.Replace("${ReleasedDate}", DateTime.UtcNow.ToString("yyyy-MM-dd")));
+
             mb.AppendLine();
 
             if (commitGroups.TryGetValue("NEW", out var newCommits)) {

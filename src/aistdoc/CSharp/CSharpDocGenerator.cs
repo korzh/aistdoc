@@ -29,8 +29,14 @@ namespace aistdoc
             _outputPath = outputPath;
             _aistantSettings = configuration.GetSection("aistant").Get<AistantSettings>();
 
-            _srcPath = Path.GetFullPath(configuration.GetSection("source:path").Get<string>());
-            _packagesPath = Path.GetFullPath(configuration.GetSection("source:packages").Get<string>());
+            var srcPath = configuration.GetSection("source:path").Get<string>();
+            _srcPath = srcPath != null ? Path.GetFullPath(srcPath) : null;
+
+            var packagesPath = configuration.GetSection("source:packages").Get<string>();
+            _packagesPath = packagesPath != null? Path.GetFullPath(packagesPath) : null;
+
+            if (_srcPath == null && _packagesPath == null)
+                throw new Exception("source.path or source.packages is required");
 
             _fileRegexPattern = configuration.GetSection("source:filter:assembly").Get<string>();
 
@@ -166,7 +172,7 @@ namespace aistdoc
                         string itemSummary = item.GetSummary();
 
                         bool ok = publisher.PublishArticle(new ArticlePublishModel {
-                            SectionUri = packageSection.ArticleUri.CombineWithUri(namespaceSection.ArticleUri),
+                            SectionUri = packageSection?.ArticleUri.CombineWithUri(namespaceSection.ArticleUri) ?? namespaceSection.ArticleUri,
                             ArticleTitle = itemName,
                             ArticleUri = itemName.MakeUriFromString(),
                             ArticleBody = itemString,

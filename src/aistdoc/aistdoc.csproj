@@ -35,8 +35,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\config-csharp.json" />
     <EmbeddedResource Include="Resources\config-typescript.json" />
-    <EmbeddedResource Include="Resources\help.txt" />
-    <None Include="Resources\aist-logo-small.png" Pack="true" PackagePath=""/>
+    <None Include="Resources\aist-logo-small.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>

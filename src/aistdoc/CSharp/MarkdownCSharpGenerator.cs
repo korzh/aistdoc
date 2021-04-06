@@ -261,7 +261,7 @@ namespace aistdoc
         public string GetPath() 
         {
             return _library.RootPath
-                .CombineWithUri(PackageName.MakeUriFromString())
+                .CombineWithUri(PackageName?.MakeUriFromString() ?? "")
                 .CombineWithUri((Namespace + " namespace").MakeUriFromString())
                 .CombineWithUri(GetNameWithKind().MakeUriFromString());
         }

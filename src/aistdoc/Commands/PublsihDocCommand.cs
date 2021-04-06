@@ -14,7 +14,6 @@ namespace aistdoc
 {
     public class PublsihDocCommand : ICommand
     {
-
         public  static void Configure(CommandLineApplication command)
         {
             command.Description = "Publish documentation";
@@ -43,9 +42,11 @@ namespace aistdoc
 
         public int Run()
         {
-
-            var logger = LoggerFactory.Create(b => b.AddConsole())
+            var loggerFactory = new LoggerFactory();
+#pragma warning disable CS0618 //suppress the "obsolete" warning since it still is changed in 3.0
+            var logger = loggerFactory.AddConsole()
                 .CreateLogger("AistDoc");
+#pragma warning restore CS0618
 
             var builder = new ConfigurationBuilder()
               .SetBasePath(Directory.GetCurrentDirectory());
@@ -59,19 +60,18 @@ namespace aistdoc
             }
 
 
-            try
-            {
+            try {
                 var startTime = DateTime.UtcNow;
                 var configuration = builder.Build();
 
                 var aistantSettings = configuration.GetSection("aistant").Get<AistantSettings>();
 
-                IArticleSaver saver = null;
+                IArticlePublisher publisher = null;
                 if (_outputOp.HasValue()) {
-                    saver = new FileSaver(_outputOp.Value(), logger);
+                    publisher = new FileArticlePublisher(_outputOp.Value(), logger);
                 }
                 else {
-                    saver = new AistantSaver(aistantSettings, logger);
+                    publisher = new AistantArticlePublisher(aistantSettings, logger);
                 }
 
                 var mode = configuration["source:mode"]?.ToString();
@@ -84,7 +84,7 @@ namespace aistdoc
                     generator = new CSharpDocGenerator(configuration, logger, _outputOp.Value());
                 }
 
-                var articleCount = generator.Generate(saver);
+                var articleCount = generator.Generate(publisher);
 
                 logger.LogInformation("Done! " + $"{articleCount} documents added or updated");
                 logger.LogInformation("Time Elapsed : " + (DateTime.UtcNow - startTime));
@@ -96,8 +96,7 @@ namespace aistdoc
                 Thread.Sleep(100);
 
                 return -1;
-            }
-          
+            } 
 
             return 0;
         }

@@ -114,7 +114,7 @@ namespace aistdoc
             }
         }
 
-        public int Generate(IArticleSaver saver)
+        public int Generate(IArticlePublisher publisher)
         {
             _logger?.LogInformation($"Processing assemblies in {_srcPath}...");
             LoadLibraryTypes();
@@ -207,7 +207,6 @@ namespace aistdoc
             var packageName = type?.PackageName ?? "";
             var foundTypeNameWithKind = type?.GetNameWithKind();
             while (string.IsNullOrEmpty(foundTypeNameWithKind)) {
-
                 lastIndexOfPoint = nameSpace.LastIndexOf(".");
 
                 if (lastIndexOfPoint == -1)
@@ -220,6 +219,7 @@ namespace aistdoc
                 packageName = type?.PackageName ?? "";
                 foundTypeNameWithKind = type?.GetNameWithKind();
             }
+
             if (string.IsNullOrEmpty(foundTypeNameWithKind)) {
                 return $"`{typeFullName.Replace('`', '\'')}`";
             }
@@ -232,6 +232,5 @@ namespace aistdoc
 
             return $"[{typeFullName}]({url})";
         }
-
     }
 }

@@ -14,8 +14,8 @@ using Aistant.KbService;
 
 namespace aistdoc
 { 
-    class Version: IComparable<Version> {
-
+    class Version: IComparable<Version> 
+    {
         private static readonly Regex _versionRegex = new Regex(@"(\d+)?\.(\d+?)\.(\d+)(-(alpha|beta|rc)(\d+))?");
         public int Major { get; private set; } = 0;
         public int Minor { get; private set; } = 0;

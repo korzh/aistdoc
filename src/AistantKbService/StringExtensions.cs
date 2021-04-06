@@ -2,11 +2,10 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace System {
-
-    public static class StringExtensions {
-      
-
+namespace System 
+{
+    public static class StringExtensions 
+    {
         /// <summary>
         /// Combines current URI string with the another URI.
         /// </summary>
@@ -18,7 +17,8 @@ namespace System {
         /// or
         /// uri
         /// </exception>
-        public static string CombineWithUri(this string baseUri, string uri) {
+        public static string CombineWithUri(this string baseUri, string uri) 
+        {
             if (baseUri == null) {
                 throw new ArgumentNullException(nameof(baseUri));
             }
@@ -41,7 +41,8 @@ namespace System {
             }
         }
 
-        public static string MakeUriFromString(this string name) {
+        public static string MakeUriFromString(this string name) 
+        {
             return Regex.Replace(name.ToLower(), "[<>.,\\s]", "-"); ;
         }
 

@@ -12,6 +12,6 @@ namespace aistdoc
         /// </summary>
         /// <param name="saver">The saver.</param>
         /// <returns>The number of articles</returns>
-        int Generate(IArticleSaver saver);
+        int Generate(IArticlePublisher saver);
     }
 }

@@ -7,8 +7,8 @@
 
     <RootNamespace>aistdoc</RootNamespace>
     <Product>aistdoc</Product>
-    <Version>2.2.0-rc1</Version>
-    <AssemblyVersion>2.2.0.1</AssemblyVersion>
+    <Version>2.1.2</Version>
+    <AssemblyVersion>2.1.2.1</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
     <Title>Aistdoc</Title>
     <Description>A .NET Core global tool that generates documentation (an API reference) for your code and publishes it on the web via Aistant (https://aistant.com) service. Supported languages are .NET/C# and TypeScript. 
@@ -24,7 +24,7 @@
     <PackageReleaseNotes></PackageReleaseNotes>
     <PackageTags>aistant doc documentation api reference xmldocs comments</PackageTags>
     <PackageProjectUrl>https://github.com/korzh/aistdoc</PackageProjectUrl>
-    <PackageIconUrl>https://aistant.com/assets/img/logo-small.png</PackageIconUrl>
+    <PackageIcon>aist-logo-small.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
     <PackAsTool>true</PackAsTool>
@@ -36,6 +36,7 @@
     <EmbeddedResource Include="Resources\config-csharp.json" />
     <EmbeddedResource Include="Resources\config-typescript.json" />
     <EmbeddedResource Include="Resources\help.txt" />
+    <None Include="Resources\aist-logo-small.png" Pack="true" PackagePath=""/>
   </ItemGroup>
 
   <ItemGroup>

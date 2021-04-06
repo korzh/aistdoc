@@ -4,7 +4,7 @@ using System.Text;
 
 namespace aistdoc
 {
-    public class ArticleSaveModel
+    public class ArticlePublishModel
     {
         public string SectionTitle { get; set; }
 

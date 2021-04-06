@@ -6,30 +6,16 @@ using System.Text.RegularExpressions;
 
 using Microsoft.Extensions.Logging;
 
-using Aistant.KbService;
+namespace aistdoc
+{
 
-namespace aistdoc {
-    public interface IArticleSaver {
-        bool SaveArticle(ArticleSaveModel model);
-    }
-
-    internal class AistantSaver : IArticleSaver {
-        private readonly AistantKbService _service;
-
-        public AistantSaver(AistantSettings settings, ILogger logger ) {
-            _service = new AistantKbService(settings, logger);
-        }
-
-        public bool SaveArticle(ArticleSaveModel model) {
-            return _service.UploadArticleAsync(model.SectionUri, model.SectionTitle, model.ArticleUri, model.ArticleTitle, model.ArticleBody, model.ArticleExcerpt, model.IsSection).Result;
-        }
-    }
-
-    public class FileSaver : IArticleSaver {
+    public class FileArticlePublisher : IArticlePublisher 
+    {
         private readonly string _outputFolder;
         private readonly ILogger _logger;
 
-        public FileSaver(string outputFolder, ILogger logger) {
+        public FileArticlePublisher(string outputFolder, ILogger logger)
+        {
             _outputFolder = outputFolder;
             _logger = logger;
 
@@ -39,8 +25,6 @@ namespace aistdoc {
             }
         }
 
-
-        public bool SaveArticle(ArticleSaveModel model) {
 
             try {
 
@@ -53,20 +37,26 @@ namespace aistdoc {
                 }
         
           
+        public bool PublishArticle(ArticlePublishModel model) 
+        {
+            try {        
+                var articleDirectory = Path.Combine(_outputFolder, MakeFileNameFromTitle(model.SectionTitle));
+                Directory.CreateDirectory(articleDirectory);
+
                 var articleTitleAndExcerpt = "## " + model.ArticleTitle + "\n";
                 articleTitleAndExcerpt += model.ArticleExcerpt + "\n";
 
                 //section index file
-                File.AppendAllText(Path.Combine(parentSection, ".md"), model.ArticleBody);
+                File.AppendAllText(Path.Combine(articleDirectory, "$index.md"), articleTitleAndExcerpt);
 
                 //article file
                 var filepath = Path.Combine(parentSection, MakeFileNameFromTitle(model.ArticleTitle)) + ".md";
                 File.WriteAllText(filepath, model.ArticleBody);
 
-                _logger.LogInformation("Article was SAVED. Path: " + filepath);
+                _logger.LogInformation("Article was published. Path: " + filepath);
             }
             catch (Exception ex) {
-                _logger.LogError("Article '" + model.ArticleTitle + "' WASN'T SAVED");
+                _logger.LogError($"ERROR on publishing [{model.ArticleTitle}]:" + ex.Message);
                 return false;
             }
            
@@ -79,7 +69,5 @@ namespace aistdoc {
             return _rightRegex.Replace(title, "");
         }
 
-    }
-
-  
+    }  
 }

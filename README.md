@@ -34,7 +34,7 @@ To update it to the latest version, if it was installed previously, use:
 dotnet tool update -g Aistant.DocImport
 ```
 
-__NB__: Of course you need [.NET Core SDK](https://dotnet.microsoft.com/download) (version 2.1 or higher) be installed on your computer (Linux, Windows or Mac) first.
+__NB__: Of course you need [.NET Core SDK](https://dotnet.microsoft.com/download) (version 3.1 or higher) be installed on your computer (Linux, Windows or Mac) first.
 
 
 ## Publish C# docs localy
@@ -219,7 +219,7 @@ There are several types of sgpecial commits:
 To separate changes between different versions __Aistdoc__ uses version tags, so be sure that your repository contains them.
 
 ### Configuration file
-@e need to configure our aistdoc tool to tell it which projects to proceed and where to publish the result.
+We need to configure our aistdoc tool to tell it which projects to proceed and where to publish the result.
 
 __Aistdoc__  reads all settings from a special JSON configuration file. To generate a template for that file use the following command:
 
@@ -317,9 +317,9 @@ To publish changelog you can use the following command:
 aistdoc changelog <project id> -c:<config file name> --pat:<PAT token> -v:<version> -o:<filename>
 ```
 
-`<PAT token>` is optional. It's equivalent in configuration file is `accessToken`. It is used in case you don't want to save security info in the conifuration file.
+`<PAT token>` is optional. The equivalent in configuration file is `accessToken`. It is used in case you don't want to save security info in the configuration file.
 
-`<version>` is the version num for which you generate documention
+`<version>` is the version num for which you generate documentation
 
 `<filename>` the output file.
 

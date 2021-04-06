@@ -15,9 +15,9 @@ namespace aistdoc
             command.HelpOption("-?|-h|--help");
 
             var fileNameOp = command.Option("--file:<filename> | -f:<filename>", "New config file name", optionType: CommandOptionType.SingleOrNoValue);
-            var modeOp = command.Option("--mode:<mode> | -m: <mode>", "The mode. cs ot ts", optionType: CommandOptionType.SingleOrNoValue)
+            var modeOp = command.Option("--mode:<mode> | -m: <mode>", "The mode. cs, ts or git", optionType: CommandOptionType.SingleOrNoValue)
                                 .Accepts(b => b
-                                    .Values("cs", "ts")
+                                    .Values("cs", "ts", "git")
                                 );
 
             Func<int> runCommandFunc = new CreateConfigCommand(fileNameOp, modeOp).Run;
@@ -54,7 +54,9 @@ namespace aistdoc
             string templateFile = "config-" + ((Mode == "cs") ? "csharp" 
                                                               : (Mode == "ts") 
                                                                       ? "typescript" 
-                                                                      : throw new UnknownParameterException("Wrong mode: " + Mode)) + ".json";
+                                                                      : (Mode == "git")
+                                                                            ? "git"
+                                                                            : throw new UnknownParameterException("Wrong mode: " + Mode)) + ".json";
 
             string content = ResourceFiles.GetResourceAsString("Resources", templateFile);
             File.WriteAllText(configName, content);

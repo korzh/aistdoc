@@ -33,6 +33,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\config-git.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\config-git.json" />
     <EmbeddedResource Include="Resources\config-csharp.json" />
     <EmbeddedResource Include="Resources\config-typescript.json" />
     <None Include="Resources\aist-logo-small.png" Pack="true" PackagePath="" />

@@ -24,7 +24,7 @@
     <PackageReleaseNotes></PackageReleaseNotes>
     <PackageTags>aistant doc documentation api reference xmldocs comments</PackageTags>
     <PackageProjectUrl>https://github.com/korzh/aistdoc</PackageProjectUrl>
-    <PackageIconUrl>https://aistant.com/assets/img/logo-small.png</PackageIconUrl>
+    <PackageIcon>aist-logo-small.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
     <PackAsTool>true</PackAsTool>
@@ -36,6 +36,7 @@
     <EmbeddedResource Include="Resources\config-csharp.json" />
     <EmbeddedResource Include="Resources\config-typescript.json" />
     <EmbeddedResource Include="Resources\help.txt" />
+    <None Include="Resources\aist-logo-small.png" Pack="true" PackagePath=""/>
   </ItemGroup>
 
   <ItemGroup>

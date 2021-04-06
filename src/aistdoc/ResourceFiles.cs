@@ -4,10 +4,12 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 
-namespace aistdoc {
-    internal static class ResourceFiles {
-
-        public static Stream GetResourceStream(string resourceFolder, string resourceFileName) {
+namespace aistdoc 
+{
+    internal static class ResourceFiles 
+    {
+        public static Stream GetResourceStream(string resourceFolder, string resourceFileName) 
+        {
             var asmbl = typeof(Program).GetTypeInfo().Assembly;
 
             string[] nameParts = asmbl.FullName.Split(',');
@@ -21,7 +23,8 @@ namespace aistdoc {
                 return null;
         }
 
-        public static string GetResourceAsString(string resourceFolder, string resourceFileName) {
+        public static string GetResourceAsString(string resourceFolder, string resourceFileName) 
+        {
             string fileContent;
             using (StreamReader sr = new StreamReader(GetResourceStream(resourceFolder, resourceFileName))) {
                 fileContent = sr.ReadToEnd();

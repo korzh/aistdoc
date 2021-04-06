@@ -6,10 +6,8 @@ using McMaster.Extensions.CommandLineUtils;
 
 namespace aistdoc
 {
-
     class Program 
     {
-
         static int Main(string[] args) 
         {
 

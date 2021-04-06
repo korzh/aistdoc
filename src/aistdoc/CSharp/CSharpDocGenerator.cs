@@ -70,7 +70,7 @@ namespace aistdoc
             }
         }
 
-        public int Generate(IArticleSaver saver)
+        public int Generate(IArticlePublisher saver)
         {
             _logger?.LogInformation($"Processing assemblies in {_srcPath}...");
             LoadLibraryTypes();
@@ -91,7 +91,7 @@ namespace aistdoc
                     string itemString = item.ToString();
                     string itemSummary = item.GetSummary();
 
-                    bool ok = saver.SaveArticle(new ArticleSaveModel
+                    bool ok = saver.SaveArticle(new ArticlePublishModel
                     {
                         SectionTitle = sectionName,
                         SectionUri = sectionName.MakeUriFromString(),

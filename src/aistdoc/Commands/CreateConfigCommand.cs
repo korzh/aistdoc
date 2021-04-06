@@ -9,7 +9,6 @@ namespace aistdoc
 {
     public class CreateConfigCommand : ICommand
     {
-
         public static void Configure(CommandLineApplication command)
         {
             command.Description = "Creates configuration file";
@@ -63,7 +62,5 @@ namespace aistdoc
 
             return 0;
         }
-
-
     }
 }

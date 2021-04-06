@@ -25,7 +25,7 @@ namespace aistdoc
             _lib.RootPath = _aistantSettings.Section?.Uri;
         }
 
-        public int Generate(IArticleSaver saver)
+        public int Generate(IArticlePublisher saver)
         {
             var articleCount = 0;
             foreach (var package in _lib.Packages) {
@@ -58,7 +58,7 @@ namespace aistdoc
             return GetClassOrInterface(name) != null;
         }
 
-        private int ProcessModule(ITypeScriptModule module, IArticleSaver saver, string parentSectionUrl = null)
+        private int ProcessModule(ITypeScriptModule module, IArticlePublisher saver, string parentSectionUrl = null)
         {
             var articleCount = 0;
             var sectionName = module.BeautifulName;
@@ -83,7 +83,7 @@ namespace aistdoc
             if (enums.Any() || classes.Any() || interfaces.Any() || functions.Any() || variables.Any() || extensionInterfaces.Any())
             {
 
-                var parentSection = new ArticleSaveModel
+                var parentSection = new ArticlePublishModel
                 {
                     SectionUri = parentSectionUrl,
                     ArticleTitle = sectionName,
@@ -103,7 +103,7 @@ namespace aistdoc
                 }
 
                 if (enums.Any()){
-                    var section = new ArticleSaveModel
+                    var section = new ArticlePublishModel
                     {
                         SectionTitle = sectionName,
                         SectionUri = fullSectionUrl,
@@ -123,7 +123,7 @@ namespace aistdoc
                         var itemSummary = @enum.Comment?.ShortText;
                         var itemContent = BuildContent(@enum);
 
-                        var articleSaveModel = new ArticleSaveModel
+                        var articleSaveModel = new ArticlePublishModel
                         {
                             SectionTitle = section.ArticleTitle,
                             SectionUri = fullSectionUrl.CombineWithUri(section.ArticleUri),
@@ -141,7 +141,7 @@ namespace aistdoc
                 }
 
                 if (interfaces.Any()) {
-                    var section = new ArticleSaveModel
+                    var section = new ArticlePublishModel
                     {
                         SectionTitle = sectionName,
                         SectionUri = fullSectionUrl,
@@ -163,7 +163,7 @@ namespace aistdoc
                         var itemSummary = GetSummary(@interface, extension: false, articleUrl: null);
                         var itemContent = BuildContent(@interface);
 
-                        var articleSaveModel = new ArticleSaveModel
+                        var articleSaveModel = new ArticlePublishModel
                         {
                             SectionTitle = section.ArticleTitle,
                             SectionUri = fullSectionUrl.CombineWithUri(section.ArticleUri),
@@ -183,7 +183,7 @@ namespace aistdoc
 
                 if (classes.Any()) {
 
-                    var section = new ArticleSaveModel
+                    var section = new ArticlePublishModel
                     {
                         SectionTitle = sectionName,
                         SectionUri = fullSectionUrl,
@@ -204,7 +204,7 @@ namespace aistdoc
 
                         var itemContent = BuildContent(@class);
 
-                        var articleSaveModel = new ArticleSaveModel
+                        var articleSaveModel = new ArticlePublishModel
                         {
                             SectionTitle = section.ArticleTitle,
                             SectionUri = fullSectionUrl.CombineWithUri(section.ArticleUri),
@@ -221,7 +221,7 @@ namespace aistdoc
 
                 if (extensionInterfaces.Any()) {
 
-                    var section = new ArticleSaveModel
+                    var section = new ArticlePublishModel
                     {
                         SectionTitle = sectionName,
                         SectionUri = fullSectionUrl,
@@ -246,7 +246,7 @@ namespace aistdoc
                         
                         var itemContent = BuildContent(extensionInterface, extension: true, articleUrl: articleUrl);
 
-                        var articleSaveModel = new ArticleSaveModel
+                        var articleSaveModel = new ArticlePublishModel
                         {
                             SectionTitle = section.ArticleTitle,
                             SectionUri = fullSectionUrl.CombineWithUri(section.ArticleUri),
@@ -266,7 +266,7 @@ namespace aistdoc
 
                     var itemSummary = GetSummary(module, module.Functions);
                
-                    var articleSaveModel = new ArticleSaveModel
+                    var articleSaveModel = new ArticlePublishModel
                     {
                         SectionTitle = sectionName,
                         SectionUri = fullSectionUrl,
@@ -284,7 +284,7 @@ namespace aistdoc
 
                     var itemSummary = GetSummary(module, module.Variables);
 
-                    var articleSaveModel = new ArticleSaveModel
+                    var articleSaveModel = new ArticlePublishModel
                     {
                         SectionTitle = sectionName,
                         SectionUri = fullSectionUrl,

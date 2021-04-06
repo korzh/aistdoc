@@ -66,12 +66,12 @@ namespace aistdoc
 
                 var aistantSettings = configuration.GetSection("aistant").Get<AistantSettings>();
 
-                IArticlePublisher saver = null;
+                IArticlePublisher publisher = null;
                 if (_outputOp.HasValue()) {
-                    saver = new FileArticlePublisher(_outputOp.Value(), logger);
+                    publisher = new FileArticlePublisher(_outputOp.Value(), logger);
                 }
                 else {
-                    saver = new AistantArticlePublisher(aistantSettings, logger);
+                    publisher = new AistantArticlePublisher(aistantSettings, logger);
                 }
 
                 var mode = configuration["source:mode"]?.ToString();
@@ -84,7 +84,7 @@ namespace aistdoc
                     generator = new CSharpDocGenerator(configuration, logger, _outputOp.Value());
                 }
 
-                var articleCount = generator.Generate(saver);
+                var articleCount = generator.Generate(publisher);
 
                 logger.LogInformation("Done! " + $"{articleCount} documents added or updated");
                 logger.LogInformation("Time Elapsed : " + (DateTime.UtcNow - startTime));

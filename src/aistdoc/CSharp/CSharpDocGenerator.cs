@@ -70,20 +70,18 @@ namespace aistdoc
             }
         }
 
-        public int Generate(IArticlePublisher saver)
+        public int Generate(IArticlePublisher publisher)
         {
             _logger?.LogInformation($"Processing assemblies in {_srcPath}...");
             LoadLibraryTypes();
 
             var dest = Directory.GetCurrentDirectory();
             int articleCount = 0;
-            foreach (var g in _types.GroupBy(x => x.Namespace).OrderBy(x => x.Key))
-            {
-                string sectionName = g.Key + " namespace";
+            foreach (var namespaceGroup in _types.GroupBy(x => x.Namespace).OrderBy(x => x.Key)) {
+                string sectionName = namespaceGroup.Key + " namespace";
+                var csharpTypes = namespaceGroup.OrderBy(x => x.Name).Distinct(new MarkdownableTypeEqualityComparer());
 
-                foreach (var item in g.OrderBy(x => x.Name).Distinct(new MarkdownableTypeEqualityComparer()))
-                {
-
+                foreach (var item in csharpTypes) {
                     SetLinks(item, _types, _aistantSettings.Kb, _aistantSettings.Section.Uri, _aistantSettings.Team);
 
                     string itemName = item.GetNameWithKind();
@@ -91,8 +89,7 @@ namespace aistdoc
                     string itemString = item.ToString();
                     string itemSummary = item.GetSummary();
 
-                    bool ok = saver.SaveArticle(new ArticlePublishModel
-                    {
+                    bool ok = publisher.PublishArticle(new ArticlePublishModel {
                         SectionTitle = sectionName,
                         SectionUri = sectionName.MakeUriFromString(),
                         ArticleTitle = itemName,
@@ -101,8 +98,7 @@ namespace aistdoc
                         ArticleExcerpt = itemSummary
                     });
 
-                    if (ok)
-                    {
+                    if (ok) {
                         articleCount++;
                     }
                 }
@@ -134,8 +130,8 @@ namespace aistdoc
             var typeName = type.Substring(type.LastIndexOf(".") + 1);
 
             var foundTypeNameWithKind = types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == typeName)?.GetNameWithKind();
-            while (string.IsNullOrEmpty(foundTypeNameWithKind)) {
 
+            while (string.IsNullOrEmpty(foundTypeNameWithKind)) {
                 lastIndexOfPoint = nameSpace.LastIndexOf(".");
 
                 if (lastIndexOfPoint == -1)
@@ -146,9 +142,11 @@ namespace aistdoc
 
                 foundTypeNameWithKind = types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == typeName)?.GetNameWithKind();
             }
+
             if (string.IsNullOrEmpty(foundTypeNameWithKind)) {
                 return $"`{type.Replace('`', '\'')}`";
             }
+
             string url = (nameSpace + " namespace").MakeUriFromString().CombineWithUri(foundTypeNameWithKind.MakeUriFromString());
             if (string.IsNullOrEmpty(_outputPath)) {
                 if (!string.IsNullOrEmpty(sectionUrl)) {
@@ -158,6 +156,5 @@ namespace aistdoc
 
             return $"[{type}]({url})";
         }
-
     }
 }

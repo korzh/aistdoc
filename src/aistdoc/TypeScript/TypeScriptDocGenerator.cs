@@ -94,7 +94,7 @@ namespace aistdoc
                 };
 
                 //Create section for package/namespace
-                if (saver.SaveArticle(parentSection)) {
+                if (saver.PublishArticle(parentSection)) {
                     articleCount++;
                 }
 
@@ -113,7 +113,7 @@ namespace aistdoc
                     };
 
                     //Create section for package/namespace
-                    if (saver.SaveArticle(section)) {
+                    if (saver.PublishArticle(section)) {
                         articleCount++;
                     }
 
@@ -133,7 +133,7 @@ namespace aistdoc
                             ArticleBody = itemContent
                         };
 
-                        if (saver.SaveArticle(articleSaveModel))
+                        if (saver.PublishArticle(articleSaveModel))
                             articleCount++;
 
                     }
@@ -151,7 +151,7 @@ namespace aistdoc
                     };
 
                     //Create section for interfaces
-                    if (saver.SaveArticle(section)) {
+                    if (saver.PublishArticle(section)) {
                         articleCount++;
                     }
 
@@ -173,7 +173,7 @@ namespace aistdoc
                             ArticleBody = itemContent
                         };
 
-                        if (saver.SaveArticle(articleSaveModel))
+                        if (saver.PublishArticle(articleSaveModel))
                             articleCount++;
                     }
 
@@ -193,7 +193,7 @@ namespace aistdoc
                     };
 
                     //Create section for interfaces
-                    if (saver.SaveArticle(section)) {
+                    if (saver.PublishArticle(section)) {
                         articleCount++;
                     }
 
@@ -214,7 +214,7 @@ namespace aistdoc
                             ArticleBody = itemContent
                         };
 
-                        if (saver.SaveArticle(articleSaveModel))
+                        if (saver.PublishArticle(articleSaveModel))
                             articleCount++;
                     }
                 }
@@ -231,7 +231,7 @@ namespace aistdoc
                     };
 
                     //Create section for extensions
-                    if (saver.SaveArticle(section)) {
+                    if (saver.PublishArticle(section)) {
                         articleCount++;
                     }
 
@@ -256,7 +256,7 @@ namespace aistdoc
                             ArticleBody = itemContent
                         };
 
-                        if (saver.SaveArticle(articleSaveModel))
+                        if (saver.PublishArticle(articleSaveModel))
                             articleCount++;
                     }
                 }
@@ -276,7 +276,7 @@ namespace aistdoc
                         ArticleExcerpt = itemSummary
                     };
 
-                    if (saver.SaveArticle(articleSaveModel))
+                    if (saver.PublishArticle(articleSaveModel))
                         articleCount++;
                 }
 
@@ -294,7 +294,7 @@ namespace aistdoc
                         ArticleExcerpt = itemSummary
                     };
 
-                    if (saver.SaveArticle(articleSaveModel))
+                    if (saver.PublishArticle(articleSaveModel))
                         articleCount++;
                 }
             }

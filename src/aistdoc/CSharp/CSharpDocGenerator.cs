@@ -122,42 +122,41 @@ namespace aistdoc
             var dest = Directory.GetCurrentDirectory();
             int articleCount = 0;
 
-            foreach (var packageG in _types.GroupBy(x => x.Package).OrderBy(x => x.Key?.Name))
-            {
-                var packageSectionName = packageG.Key?.Name;
-                var packageSection = packageSectionName != null ? new ArticleSaveModel
-                {
-                    ArticleTitle = packageSectionName,
-                    ArticleUri = packageSectionName.MakeUriFromString(),
-                    ArticleBody = packageG.Key.Description,
-                    ArticleExcerpt = packageG.Key.Description,
-                    IsSection = true
-                } : null;
+            var packageGroups = _types.GroupBy(x => x.Package).OrderBy(x => x.Key?.Name);
+            foreach (var packageGroup in packageGroups) {
+                var packageSectionName = packageGroup.Key?.Name;
+                var packageSection = packageSectionName != null 
+                    ? new ArticlePublishModel {
+                            ArticleTitle = packageSectionName,
+                            ArticleUri = packageSectionName.MakeUriFromString(),
+                            ArticleBody = packageGroup.Key.Description,
+                            ArticleExcerpt = packageGroup.Key.Description,
+                            IsSection = true
+                        } 
+                    : null;
 
-                if (packageSection != null && saver.SaveArticle(packageSection)) {
+                if (packageSection != null && publisher.PublishArticle(packageSection)) {
                     articleCount++;
                 };
 
-                foreach (var namespaceG in packageG.GroupBy(x => x.Namespace).OrderBy(x => x.Key))
-                {
+                var namespaceGroups = packageGroup.GroupBy(x => x.Namespace).OrderBy(x => x.Key);
 
-                    var namespaceSectionName = namespaceG.Key + " namespace";
-                    var namespaceSection = new ArticleSaveModel
-                    {
+                foreach (var namespaceGroup in namespaceGroups) {
+                    var namespaceSectionName = namespaceGroup.Key + " namespace";
+                    var namespaceSection = new ArticlePublishModel {
                         SectionUri = packageSection?.ArticleUri,
                         ArticleTitle = namespaceSectionName,
                         ArticleUri = namespaceSectionName.MakeUriFromString(),
                         IsSection = true
                     };
 
-                    if (saver.SaveArticle(namespaceSection))
-                    {
+                    if (publisher.PublishArticle(namespaceSection)) {
                         articleCount++;
                     };
 
 
-                    foreach (var item in namespaceG.OrderBy(x => x.Name).Distinct(new MarkdownableTypeEqualityComparer()))
-                    {
+                    var namespaceTypes = namespaceGroup.OrderBy(x => x.Name).Distinct(new MarkdownableTypeEqualityComparer());
+                    foreach (var item in namespaceTypes) {
 
                         SetLinks(item, _types, _aistantSettings.Kb, _aistantSettings.Section.Uri, _aistantSettings.Team);
 
@@ -166,8 +165,7 @@ namespace aistdoc
                         string itemString = item.ToString();
                         string itemSummary = item.GetSummary();
 
-                        bool ok = saver.SaveArticle(new ArticleSaveModel
-                        {
+                        bool ok = publisher.PublishArticle(new ArticlePublishModel {
                             SectionUri = packageSection.ArticleUri.CombineWithUri(namespaceSection.ArticleUri),
                             ArticleTitle = itemName,
                             ArticleUri = itemName.MakeUriFromString(),

@@ -23,11 +23,11 @@ namespace aistdoc
                 Directory.Delete(_outputFolder, true);
                 Directory.CreateDirectory(_outputFolder);
             }
-        }
-
-
+        }     
+          
+        public bool PublishArticle(ArticlePublishModel model) 
+        {
             try {
-
                 var parentSection = model.SectionUri != null ? Path.Combine(_outputFolder, model.SectionUri) : _outputFolder;
                 Directory.CreateDirectory(parentSection);
                 if (model.IsSection) {
@@ -35,19 +35,12 @@ namespace aistdoc
                     Directory.CreateDirectory(sectionDir);
                     return true;
                 }
-        
-          
-        public bool PublishArticle(ArticlePublishModel model) 
-        {
-            try {        
-                var articleDirectory = Path.Combine(_outputFolder, MakeFileNameFromTitle(model.SectionTitle));
-                Directory.CreateDirectory(articleDirectory);
 
                 var articleTitleAndExcerpt = "## " + model.ArticleTitle + "\n";
                 articleTitleAndExcerpt += model.ArticleExcerpt + "\n";
 
                 //section index file
-                File.AppendAllText(Path.Combine(articleDirectory, "$index.md"), articleTitleAndExcerpt);
+                File.AppendAllText(Path.Combine(parentSection, "$index.md"), articleTitleAndExcerpt);
 
                 //article file
                 var filepath = Path.Combine(parentSection, MakeFileNameFromTitle(model.ArticleTitle)) + ".md";

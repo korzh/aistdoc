@@ -42,11 +42,8 @@ namespace aistdoc
 
         public int Run()
         {
-            var loggerFactory = new LoggerFactory();
-#pragma warning disable CS0618 //suppress the "obsolete" warning since it still is changed in 3.0
-            var logger = loggerFactory.AddConsole()
+            var logger = LoggerFactory.Create(b => b.AddConsole())
                 .CreateLogger("AistDoc");
-#pragma warning restore CS0618
 
             var builder = new ConfigurationBuilder()
               .SetBasePath(Directory.GetCurrentDirectory());

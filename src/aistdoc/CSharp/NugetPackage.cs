@@ -68,10 +68,8 @@ namespace aistdoc
                         var parts = n.Split('/', StringSplitOptions.RemoveEmptyEntries);
                         var tfm = (parts.Length >= 3) ? Uri.UnescapeDataString(parts[1].Trim().ToLowerInvariant()) : "";
 
-                        if (n.EndsWith(".xml", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            try
-                            {
+                        if (n.EndsWith(".xml", StringComparison.InvariantCultureIgnoreCase)) {
+                            try {
                                 var asmName = Path.GetFileNameWithoutExtension(n);
                                 var comments = VSDocParser.ParseXmlComment(XDocument.Load(e.Open()));
                                 if (!assemblyDocs.ContainsKey(asmName))
@@ -82,17 +80,13 @@ namespace aistdoc
                                     assemblyDocs[asmName] = assemblyDocs[asmName].Concat(comments).ToArray();
                                 }
                             }
-                            catch (Exception ex)
-                            {
-
+                            catch {
+                                //Just ignore the exceptions
                             }
-
                         }
-                        else
-                        {
+                        else {
                             if (pattern == null || pattern.IsMatch(Path.GetFileNameWithoutExtension(e.Name))) {
-                                using (var ms = new MemoryStream())
-                                {
+                                using (var ms = new MemoryStream()) {
                                     e.Open().CopyTo(ms);
                                     ms.Position = 0;
 
@@ -105,9 +99,8 @@ namespace aistdoc
                     else if (n.EndsWith(".nuspec", StringComparison.InvariantCultureIgnoreCase)) {
                         nuspec = e;
                     }
-                    else
-                    {
-                        // NOTHING TO DO;
+                    else {
+                        // nothing to do
                     }
                 }
 
@@ -117,15 +110,12 @@ namespace aistdoc
                 }
 
                 return new NugetPackage(assemblies, nuspec);
-
             }
-
         }
 
         private void ReadNuspecFile(ZipArchiveEntry entry)
         {
-            using (var stream = entry.Open())
-            {
+            using (var stream = entry.Open()) {
                 var xdoc = XDocument.Load(stream);
                 var ns = xdoc.Root.Name.Namespace;
                 var meta = xdoc.Root.Elements().FirstOrDefault(x => x.Name.LocalName == "metadata");

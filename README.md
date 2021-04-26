@@ -1,5 +1,9 @@
 # AistDoc utility
 
+| Build status | Nuget|
+|---|---|
+|   [![Build status](https://dev.azure.com/korzhdev/EasyQuery/_apis/build/status/aistdoc/prod-aistdoc)](https://dev.azure.com/korzhdev/EasyQuery/_build/latest?definitionId=41)| [![NuGet](https://img.shields.io/nuget/v/Aistant.DocImport.svg)](https://www.nuget.org/packages/Aistant.DocImport) |
+
 ## 1. What is AistDoc?
 
 AistDoc is an API documentation generator and publishing tool for your code. Currently it supports:

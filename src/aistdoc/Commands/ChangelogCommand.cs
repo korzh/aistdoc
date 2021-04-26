@@ -45,7 +45,7 @@ namespace aistdoc
                 return Major - other.Major;
 
             if (Minor != other.Minor)
-                return Minor = other.Minor;
+                return Minor - other.Minor;
 
             return Patch - other.Patch;
         }
@@ -247,9 +247,8 @@ namespace aistdoc
                             tagFrom = orderedTags.FirstOrDefault();
                         }
                     }
-
+ 
                     Tag tagTo = repo.Tags["v" + nextVersion];
-
                     return repo.Commits
                         .QueryBy(new CommitFilter
                         {

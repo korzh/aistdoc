@@ -3,9 +3,8 @@ using System.Text;
 
 namespace aistdoc 
 {
-
-    internal class MarkdownBuilder {
-
+    internal class MarkdownBuilder 
+    {
         public static string MarkdownCodeQuote(string code)
         {
             return "`" + code + "`";
@@ -28,19 +27,23 @@ namespace aistdoc
 
         StringBuilder sb = new StringBuilder();
 
-        public void Append(string text) {
+        public void Append(string text) 
+        {
             sb.Append(text);
         }
 
-        public void AppendLine() {
+        public void AppendLine() 
+        {
             sb.AppendLine();
         }
 
-        public void AppendLine(string text) {
+        public void AppendLine(string text) 
+        {
             sb.AppendLine(text);
         }
 
-        public void Header(int level, string text) {
+        public void Header(int level, string text) 
+        {
             for (int i = 0; i < level; i++) {
                 sb.Append("#");
             }
@@ -48,7 +51,8 @@ namespace aistdoc
             sb.AppendLine(text);
         }
 
-        public void HeaderWithCode(int level, string code) {
+        public void HeaderWithCode(int level, string code) 
+        {
             for (int i = 0; i < level; i++) {
                 sb.Append("#");
             }
@@ -57,7 +61,8 @@ namespace aistdoc
             sb.AppendLine();
         }
 
-        public void HeaderWithLink(int level, string text, string url) {
+        public void HeaderWithLink(int level, string text, string url) 
+        {
             for (int i = 0; i < level; i++) {
                 sb.Append("#");
             }
@@ -66,7 +71,8 @@ namespace aistdoc
             sb.AppendLine();
         }
 
-        public void Link(string text, string url) {
+        public void Link(string text, string url)
+        {
             sb.Append("[");
             sb.Append(text);
             sb.Append("]");
@@ -75,25 +81,29 @@ namespace aistdoc
             sb.Append(")");
         }
 
-        public void Image(string altText, string imageUrl) {
+        public void Image(string altText, string imageUrl) 
+        {
             sb.Append("!");
             Link(altText, imageUrl);
         }
 
-        public void Code(string language, string code) {
+        public void Code(string language, string code) 
+        {
             sb.Append("```");
             sb.AppendLine(language);
             sb.AppendLine(code);
             sb.AppendLine("```");
         }
 
-        public void CodeQuote(string code) {
+        public void CodeQuote(string code) 
+        {
             sb.Append("`");
             sb.Append(code);
             sb.Append("`");
         }
 
-        public void Table(string[] headers, IEnumerable<string[]> items) {
+        public void Table(string[] headers, IEnumerable<string[]> items) 
+        {
             sb.Append("| ");
             foreach (var item in headers) {
                 sb.Append(item);
@@ -152,7 +162,8 @@ namespace aistdoc
             sb.AppendLine();
         }
 
-        public override string ToString() {
+        public override string ToString() 
+        {
             return sb.ToString();
         }
     }

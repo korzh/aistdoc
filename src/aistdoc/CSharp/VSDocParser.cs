@@ -6,9 +6,10 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace aistdoc {
-
-    internal enum MemberType {
+namespace aistdoc 
+{
+    internal enum MemberType 
+    {
         Field = 'F',
         Property = 'P',
         Type = 'T',
@@ -17,7 +18,8 @@ namespace aistdoc {
         None = 0
     }
 
-     internal class XmlDocumentComment {
+    internal class XmlDocumentComment 
+    {
         public MemberType MemberType { get; set; }
         public string ClassName { get; set; }
         public string MemberName { get; set; }
@@ -26,7 +28,8 @@ namespace aistdoc {
         public Dictionary<string, string> Parameters { get; set; }
         public string Returns { get; set; }
 
-        public override string ToString() {
+        public override string ToString() 
+        {
             return MemberType + ":" + ClassName + "." + MemberName;
         }
      }
@@ -34,7 +37,8 @@ namespace aistdoc {
      internal static class VSDocParser {
     
         // cheap, quick hack parser:)
-        internal static XmlDocumentComment[] ParseXmlComment(XDocument xDocument) {
+        internal static XmlDocumentComment[] ParseXmlComment(XDocument xDocument) 
+        {
             return xDocument.Descendants("member")
                 .Select(x => {
                     var match = Regex.Match(x.Attribute("name").Value, @"(.):(.+)\.([^.()]+)?(\(.+\)|$)");
@@ -83,19 +87,23 @@ namespace aistdoc {
                 .ToArray();
         }
 
-        private static string ResolveSeeElement(Match m) {
+        private static string ResolveSeeElement(Match m) 
+        {
             var typeName = m.Groups[1].Value;
             return m.Groups[0].Value;
         }
 
             
 
-        class Item1EqualityCompaerer<T1, T2> : EqualityComparer<Tuple<T1, T2>> {
-            public override bool Equals(Tuple<T1, T2> x, Tuple<T1, T2> y) {
+        class Item1EqualityCompaerer<T1, T2> : EqualityComparer<Tuple<T1, T2>> 
+        {
+            public override bool Equals(Tuple<T1, T2> x, Tuple<T1, T2> y) 
+            {
                 return x.Item1.Equals(y.Item1);
             }
 
-            public override int GetHashCode(Tuple<T1, T2> obj) {
+            public override int GetHashCode(Tuple<T1, T2> obj) 
+            {
                 return obj.Item1.GetHashCode();
             }
         }

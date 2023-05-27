@@ -39,6 +39,8 @@ namespace aistdoc
                 var articleTitleAndExcerpt = "## " + model.ArticleTitle + "\n";
                 articleTitleAndExcerpt += model.ArticleExcerpt + "\n";
 
+                articleTitleAndExcerpt = System.Net.WebUtility.HtmlEncode(articleTitleAndExcerpt);
+
                 //section index file
                 File.AppendAllText(Path.Combine(parentSection, "$index.md"), articleTitleAndExcerpt);
 
@@ -58,7 +60,8 @@ namespace aistdoc
 
         private Regex _rightRegex = new Regex("[\\~#%&*{}/:<>?|\"-]");
 
-        private string MakeFileNameFromTitle(string title) {
+        private string MakeFileNameFromTitle(string title) 
+        {
             return _rightRegex.Replace(title, "");
         }
 

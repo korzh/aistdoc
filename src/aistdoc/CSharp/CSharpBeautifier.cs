@@ -6,8 +6,8 @@ using Mono.Cecil;
 namespace aistdoc 
 {
 
-    internal static class CSharpBeautifier {
-
+    internal static class CSharpBeautifier 
+    {
         public static string BeautifyType(TypeReference t, bool isFull = false, bool isParam = false) {
             if (t == null) return "";
             if (t.FullName == "System.Void") return "void";
@@ -62,19 +62,16 @@ namespace aistdoc
             }
 
             string innerFormat = "";
-            if (t is GenericInstanceType genType)
-            {
+            if (t is GenericInstanceType genType) {
                 var args = genType.GenericArguments.ToArray();
                 innerFormat = string.Join(", ", args.Select(x => ToMarkdownTypeReference(lib, x, isParam: true)));
             }
-            else
-            {
+            else {
                 innerFormat = string.Join(", ", t.GenericParameters.Select(x => x.Name));
             }
 
             name = Regex.Replace(t.Name, @"`.+$?", "");
-            if (hasMdType)
-            {
+            if (hasMdType) {
                 name = MarkdownBuilder.MarkdownUrl(name, mdType.GetPath());
             }
             else { 
@@ -88,7 +85,7 @@ namespace aistdoc
             var isExtension = methodInfo.HasExtensionAttribute();
 
             var seq = methodInfo.Parameters.Select(x => {
-                var suffix = x.HasDefault ? (" = " + (x.Constant ?? $"<span style='color: blue'>null</span>")) : "";
+                var suffix = x.HasDefault ? (" = " + (x.Constant ?? $"<span style={{color: 'blue'}}>null</span>")) : "";
                 return ToMarkdownTypeReference(lib, x.ParameterType, isParam: true) + " "   + x.Name + suffix;
             });
 
@@ -97,7 +94,7 @@ namespace aistdoc
             if (index > 0)
                 beautifulMethodName = beautifulMethodName.Remove(index);
 
-            return beautifulMethodName + "(" + (isExtension ? "<span style='color: blue'>this</span> " : "") + string.Join(", ", seq) + ")";
+            return beautifulMethodName + "(" + (isExtension ? "<span style={{color: 'blue'}}>this</span> " : "") + string.Join(", ", seq) + ")";
         }
     }
 }

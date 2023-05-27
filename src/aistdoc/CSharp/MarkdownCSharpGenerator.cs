@@ -200,7 +200,13 @@ namespace aistdoc
 
                 var stat = (_type.IsAbstract && _type.IsSealed) ? "static " : "";
                 var abst = (_type.IsAbstract && !_type.IsInterface && !_type.IsSealed) ? "abstract " : "";
-                var classOrStructOrEnumOrInterface = _type.IsInterface ? "interface" : _type.IsEnum ? "enum" : _type.IsValueType ? "struct" : "class";
+                var classOrStructOrEnumOrInterface = _type.IsInterface 
+                    ? "interface" 
+                    : _type.IsEnum 
+                        ? "enum" 
+                        : _type.IsValueType 
+                            ? "struct" 
+                            : "class";
 
                 sb.AppendLine($"public {stat}{abst}{classOrStructOrEnumOrInterface} {CSharpBeautifier.BeautifyType(_type, isFull: true)}");
                 var impl = string.Join(", ", new[] { _type.BaseType }.Concat(_type.Interfaces.Select(x => x.InterfaceType))
@@ -226,7 +232,6 @@ namespace aistdoc
                 mb.AppendLine();
                 mb.AppendLine();
             }
-
 
             mb.Append("Assembly: ");
             mb.CodeQuote($"{this.AssymblyName}.dll");

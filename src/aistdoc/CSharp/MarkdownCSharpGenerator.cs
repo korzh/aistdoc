@@ -165,15 +165,18 @@ namespace aistdoc
             }
         }
 
-        public string GetKindName() {
+        public string GetKindName() 
+        {
             return Kind.ToString();
         }
 
-        public string GetNameWithKind() {
-            return BeautifyName + " "+ GetKindName().ToLower();
+        public string GetNameWithKind() 
+        {
+            return BeautifyName + " " + GetKindName().ToLower();
         }
 
-        public string GetSummary() {
+        public string GetSummary() 
+        {
             var typeDocs = Comments;
             if (typeDocs == null) {
                 return "";

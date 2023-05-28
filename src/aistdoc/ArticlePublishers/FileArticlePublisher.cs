@@ -39,13 +39,13 @@ namespace aistdoc
                 var articleTitleAndExcerpt = "## " + model.ArticleTitle + "\n";
                 articleTitleAndExcerpt += model.ArticleExcerpt + "\n";
 
-                articleTitleAndExcerpt = System.Net.WebUtility.HtmlEncode(articleTitleAndExcerpt);
+                articleTitleAndExcerpt = articleTitleAndExcerpt.CleanAngleBrackets();
 
                 //section index file
                 File.AppendAllText(Path.Combine(parentSection, "$index.md"), articleTitleAndExcerpt);
 
                 //article file
-                var filepath = Path.Combine(parentSection, MakeFileNameFromTitle(model.ArticleTitle)) + ".md";
+                var filepath = Path.Combine(parentSection, model.ArticleTitle.MakeUriFromString()) + ".md";
                 File.WriteAllText(filepath, model.ArticleBody);
 
                 _logger.LogInformation("Article was published. Path: " + filepath);

@@ -81,7 +81,8 @@ namespace aistdoc
             return name + "&lt;" + innerFormat + "&gt;";
         }
 
-        public static string ToMarkdownMethodInfo(CSharpLibrary lib, MethodDefinition methodInfo) {
+        public static string ToMarkdownMethodInfo(CSharpLibrary lib, MethodDefinition methodInfo) 
+        {
             var isExtension = methodInfo.HasExtensionAttribute();
 
             var seq = methodInfo.Parameters.Select(x => {

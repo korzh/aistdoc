@@ -48,12 +48,10 @@ namespace aistdoc
 
         private void LoadLibraryTypes()
         {
-            if (_packagesPath != null)
-            {
+            if (_packagesPath != null) {
                 LoadPackages();
             }
-            else 
-            {
+            else {
                 LoadAssemblies();
             }
         }
@@ -88,16 +86,13 @@ namespace aistdoc
             Func<string, bool> isFileToProcess = (s) =>
             {
 
-                if (!s.EndsWith(".dll"))
-                {
+                if (!s.EndsWith(".dll")) {
                     return false;
                 }
 
-                if (fileRegex != null)
-                {
+                if (fileRegex != null) {
                     var fileName = s.Substring(s.LastIndexOf("\\") + 1);
-                    if (!fileRegex.IsMatch(fileName))
-                    {
+                    if (!fileRegex.IsMatch(fileName)) {
                         return false;
                     }
                 }

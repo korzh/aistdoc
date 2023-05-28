@@ -1,5 +1,9 @@
 # AistDoc utility
 
+| Build status | Nuget|
+|---|---|
+|   [![Build status](https://dev.azure.com/korzhdev/EasyQuery/_apis/build/status/aistdoc/prod-aistdoc)](https://dev.azure.com/korzhdev/EasyQuery/_build/latest?definitionId=41)| [![NuGet](https://img.shields.io/nuget/v/Aistant.DocImport.svg)](https://www.nuget.org/packages/Aistant.DocImport) |
+
 ## 1. What is AistDoc?
 
 AistDoc is an API documentation generator and publishing tool for your code. Currently it supports:
@@ -42,7 +46,7 @@ dotnet tool update -g Aistant.DocImport
 __NB__: Of course you need [.NET Core SDK](https://dotnet.microsoft.com/download) (version 3.1 or higher) be installed on your computer (Linux, Windows or Mac) first.
 
 
-## 3. Generating documentation for .NET code (locally)
+## 3. Generating documentation for .NET code
 
 There are two ways to generate documentation based on your code:
 - using assembly DLLs and corresponding XML files
@@ -228,21 +232,19 @@ For details on how to publish your documentation please read one of our tutorial
 
  * [Publishing the API reference for your TypeScript project with TSDoc](https://docs.aistant.com/en/tutorials/publish-api-reference-typescript-tsdoc)
  
-
-
 ## 6. Generating Changelog
 
-__Aistdoc__ allows you to create a Changelog document based on the some Git commits. To be processed a commit message must match the following pattern:
+__Aistdoc__ allows you to create a Changelog document based on Git commits. To be processed a commit message must match the following pattern:
 
 ```
 [TYPE] Some text 
 ```
 
 Here TYPE can be one of the following:
-- __fix__ indicates that commit contains fixes.
-- __upd__ indicates that commit contains some modifications or improvements (changes in the API for example).
-- __new__ indicates that commit contains new features.
-- __doc__ indicates that commit contains documentation changes.
+- __fix__ - indicates that the commit contains fixes.
+- __upd__ - indicates that the commit contains some modifications or improvements (changes in the API for example).
+- __new__ - indicates that the commit contains new features.
+- __doc__ - indicates that the commit contains documentation changes.
 
 To separate the changes between different versions __Aistdoc__ uses version tags, so please be sure that your repository contains them.
 

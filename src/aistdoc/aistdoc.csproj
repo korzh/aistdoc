@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
+    <TargetFrameworks>net6.0</TargetFrameworks>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <RootNamespace>aistdoc</RootNamespace>
     <Product>aistdoc</Product>
-    <Version>2.2.1</Version>
-    <AssemblyVersion>2.2.1.0</AssemblyVersion>
+    <Version>2.2.2</Version>
+    <AssemblyVersion>2.2.2.0</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
     <Title>Aistdoc</Title>
     <Description>
@@ -18,7 +18,7 @@
       Additionally AistDoc can generate Changelog documents based on commits in your Git repository.
     </Description>
     <Authors>Sergiy Korzh, Anton Ivanenko</Authors>
-    <Copyright>Copyright 2018-2021 (c) Korzh.com. All rights reserved.</Copyright>
+    <Copyright>Copyright 2018-2023 (c) Korzh.com. All rights reserved.</Copyright>
     <RepositoryUrl>https://github.com/korzh/aistdoc</RepositoryUrl>
 
     <PackageVersion>$(Version)</PackageVersion>

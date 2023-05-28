@@ -43,8 +43,12 @@ namespace System
 
         public static string MakeUriFromString(this string name) 
         {
-            return Regex.Replace(name.ToLower(), "[<>.,\\s]", "-"); ;
+            return Regex.Replace(name.ToLower(), "[<>.,\\s]", "-");
         }
 
+        public static string CleanAngleBrackets(this string name)
+        {
+            return name.Replace("<", "&lt;").Replace(">", "&gt;");
+        }
     }
 }

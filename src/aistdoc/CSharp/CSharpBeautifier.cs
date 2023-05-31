@@ -86,7 +86,7 @@ namespace aistdoc
             var isExtension = methodInfo.HasExtensionAttribute();
 
             var seq = methodInfo.Parameters.Select(x => {
-                var suffix = x.HasDefault ? (" = " + (x.Constant ?? $"<span style={{color: 'blue'}}>null</span>")) : "";
+                var suffix = x.HasDefault ? (" = " + (x.Constant ?? "<span style={{color: 'blue'}}>null</span>")) : "";
                 return ToMarkdownTypeReference(lib, x.ParameterType, isParam: true) + " "   + x.Name + suffix;
             });
 

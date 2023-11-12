@@ -45,19 +45,18 @@ namespace aistdoc
             var logger = LoggerFactory.Create(b => b.AddConsole())
                 .CreateLogger("AistDoc");
 
-            var builder = new ConfigurationBuilder()
-              .SetBasePath(Directory.GetCurrentDirectory());
-
-            Console.WriteLine($"Reading config: {ConfigPath} ...");
             try {
-                builder.AddJsonFile(ConfigPath);
-            }
-            catch (FileNotFoundException ex) {
-                throw ex;
-            }
+                var builder = new ConfigurationBuilder()
+                        .SetBasePath(Directory.GetCurrentDirectory());
 
+                Console.WriteLine($"Reading config: {ConfigPath} ...");
+                try {
+                    builder.AddJsonFile(ConfigPath);
+                }
+                catch (FileNotFoundException ex) {
+                    throw ex;
+                }
 
-            try {
                 var startTime = DateTime.UtcNow;
                 var configuration = builder.Build();
 
@@ -89,9 +88,14 @@ namespace aistdoc
             }
             catch (Exception ex) {
                 logger.LogCritical(ex.Message);
-
+                logger.LogCritical(ex.StackTrace);
+                Console.Out.WriteLine(ex.Message);
+                Console.Out.WriteLine(ex.StackTrace);
+                if (ex.InnerException != null) {
+                    logger.LogCritical(ex.Message);
+                    Console.Out.WriteLine(ex.InnerException.Message);
+                }
                 Thread.Sleep(100);
-
                 return -1;
             } 
 

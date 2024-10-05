@@ -53,8 +53,8 @@ namespace aistdoc
                 try {
                     builder.AddJsonFile(ConfigPath);
                 }
-                catch (FileNotFoundException ex) {
-                    throw ex;
+                catch (FileNotFoundException) {
+                    throw;
                 }
 
                 var startTime = DateTime.UtcNow;

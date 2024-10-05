@@ -209,8 +209,8 @@ namespace aistdoc
                 _gitSettings = config.GetSection("git").Get<GitSettings>() ?? new GitSettings();
                 _aistantSettings = config.GetSection("aistant").Get<AistantSettings>() ?? new AistantSettings();
             }
-            catch (FileNotFoundException ex) {
-                throw ex;
+            catch (FileNotFoundException) {
+                throw;
             }
         }
 
@@ -313,7 +313,7 @@ namespace aistdoc
             if (!Repository.IsValid(repoSettings.Path)) {
                 if (repoSettings.CloneIfNotExist) {
                     var co = new CloneOptions();
-                    co.CredentialsProvider = (_url, _user, _cred)
+                    co.FetchOptions.CredentialsProvider = (_url, _user, _cred)
                         => GetCredentials(repoSettings.CredentialId);
                     Repository.Clone(repoSettings.Url, repoSettings.Path, co);
                 } 

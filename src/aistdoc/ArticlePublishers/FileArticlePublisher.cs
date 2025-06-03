@@ -42,7 +42,7 @@ namespace aistdoc
                 articleTitleAndExcerpt = articleTitleAndExcerpt.CleanAngleBrackets();
 
                 //section index file
-                File.AppendAllText(Path.Combine(parentSection, "$index.md"), articleTitleAndExcerpt);
+                File.AppendAllText(Path.Combine(parentSection, "_section.md"), articleTitleAndExcerpt);
 
                 //article file
                 var filepath = Path.Combine(parentSection, model.ArticleTitle.MakeUriFromString()) + ".md";

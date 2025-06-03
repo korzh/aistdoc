@@ -7,18 +7,18 @@
 
     <RootNamespace>aistdoc</RootNamespace>
     <Product>aistdoc</Product>
-    <Version>2.3.0</Version>
-    <AssemblyVersion>2.3.0.0</AssemblyVersion>
+    <Version>2.4.0</Version>
+    <AssemblyVersion>2.4.0.0</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
     <Title>Aistdoc</Title>
     <Description>
       A .NET Core global tool that generates documentation (an API reference) for your code in Markdown or HTML formats.
       Supported languages are .NET/C# and TypeScript.
-      The generated documentation can be saved to files or published on Aistant (https://aistant.com) service.
+      The generated documentation can be saved to a bunch of .md files for publishing on your website.
       Additionally AistDoc can generate Changelog documents based on commits in your Git repository.
     </Description>
     <Authors>Sergiy Korzh, Anton Ivanenko</Authors>
-    <Copyright>Copyright 2018-2024 (c) Korzh.com. All rights reserved.</Copyright>
+    <Copyright>Copyright 2018-2025 (c) Korzh.com. All rights reserved.</Copyright>
     <RepositoryUrl>https://github.com/korzh/aistdoc</RepositoryUrl>
 
     <PackageVersion>$(Version)</PackageVersion>

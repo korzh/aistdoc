@@ -20,19 +20,25 @@ namespace aistdoc
             command.HelpOption("-?|-h|--help");
 
             var configOp = command.Option("--config:<filename> | -c:<filename>", "Config file name", optionType: CommandOptionType.SingleOrNoValue);
+            var assembliesOp = command.Option("--assemblies:<folder> | -i: <folder>", "The path to assemblies and XML files", optionType: CommandOptionType.SingleOrNoValue);
+            var packagesOp = command.Option("--packages:<folder> | -i: <folder>", "The path to library packages", optionType: CommandOptionType.SingleOrNoValue);
             var outputOp = command.Option("--output:<folder> | -o: <folder>", "Output path", optionType: CommandOptionType.SingleOrNoValue);
                                 
-            Func<int> runCommandFunc = new PublsihDocCommand(configOp, outputOp).Run;
+            Func<int> runCommandFunc = new PublsihDocCommand(configOp, assembliesOp, packagesOp, outputOp).Run;
             command.OnExecute(runCommandFunc);
         }
 
         private readonly CommandOption _configOp;
 
+        private readonly CommandOption _assembliesOp;
+        private readonly CommandOption _packagesOp;
         private readonly CommandOption _outputOp;
 
-        public PublsihDocCommand(CommandOption configOp, CommandOption outputOp)
+        public PublsihDocCommand(CommandOption configOp, CommandOption assembliesOp, CommandOption packagesOp, CommandOption outputOp)
         {
             _configOp = configOp;
+            _assembliesOp = assembliesOp;
+            _packagesOp = packagesOp;
             _outputOp = outputOp;
         }
 
@@ -53,14 +59,15 @@ namespace aistdoc
                 try {
                     builder.AddJsonFile(ConfigPath);
                 }
-                catch (FileNotFoundException ex) {
-                    throw ex;
+                catch (FileNotFoundException) {
+                    throw;
                 }
 
                 var startTime = DateTime.UtcNow;
                 var configuration = builder.Build();
 
                 var aistantSettings = configuration.GetSection("aistant").Get<AistantSettings>();
+                var librarySettings = configuration.GetSection("library").Get<LibrarySettings>();
 
                 IArticlePublisher publisher = null;
                 if (_outputOp.HasValue()) {
@@ -77,7 +84,20 @@ namespace aistdoc
                     generator = new TypeScriptDocGenerator(configuration);
                 }
                 else {
-                    generator = new CSharpDocGenerator(configuration, logger, _outputOp.Value());
+                    var options = new CSharpDocGeneratorOptions();
+                    options.AistantSettings = aistantSettings;
+                    options.RootSectionTitle = librarySettings?.RootTitle;
+                    options.RootSectionUri = librarySettings?.RootUri;
+                    options.AssembliesPath = _assembliesOp.HasValue() 
+                                            ? _assembliesOp.Value() 
+                                            : configuration.GetSection("source:path").Get<string>();
+                    options.PackagesPath = _packagesOp.HasValue() 
+                                            ? _packagesOp.Value() 
+                                            : configuration.GetSection("source:packages").Get<string>();
+                    options.OutputPath = _outputOp.Value();
+                    options.FileRegexPattern = configuration.GetSection("source:filter:assembly").Get<string>();
+                    options.NamespacePattern = configuration.GetSection("source:filter:namespace").Get<string>();
+                    generator = new CSharpDocGenerator(options, logger);
                 }
 
                 var articleCount = generator.Generate(publisher);

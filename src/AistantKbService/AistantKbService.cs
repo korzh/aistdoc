@@ -13,14 +13,15 @@ using Newtonsoft.Json;
 
 using Aistant.KbService.Models;
 
-namespace Aistant.KbService {
-
-    class KbErrorMessage {
+namespace Aistant.KbService 
+{
+    class KbErrorMessage 
+    {
         public string Message { get; set; }
     }
 
-    public class AistantSettings {
-
+    public class AistantSettings 
+    {
 #region API_SETTINGS
 
 #if RELEASE
@@ -95,8 +96,8 @@ namespace Aistant.KbService {
         public string Title { get; set; } = "";
     }
 
-    public class AistantKbService: IDisposable {
-
+    public class AistantKbService: IDisposable 
+    {
         private ILogger _logger;
 
         private readonly AistantSettings _settings;
@@ -176,11 +177,13 @@ namespace Aistant.KbService {
             }
         }
 
-        public void SetLogger(ILogger logger) {
+        public void SetLogger(ILogger logger)
+        {
             _logger = logger;
         }
 
-        private async Task Login() {
+        private async Task Login() 
+        {
             var url = _settings.AuthHost.CombineWithUri(_settings.TokenEndpoint);
             var client = new TokenClient(url, _settings.ClientId, AuthenticationStyle.PostValues);
 
@@ -203,7 +206,8 @@ namespace Aistant.KbService {
         /// <param name="title">title of article</param>
         /// <param name="body">body of article</param>
         /// <returns></returns>
-        public async Task<bool> UploadArticleAsync(string uri, string title, string body, string excerpt, bool isSection = false) {
+        public async Task<bool> UploadArticleAsync(string uri, string title, string body, string excerpt, bool isSection = false)
+        {
 
             if (string.IsNullOrEmpty(_accessToken)) {
                 await Login();
@@ -272,8 +276,10 @@ namespace Aistant.KbService {
         /// <param name="articleTitle">Article's title</param>
         /// <param name="articleBody">Article's body</param>
         /// <returns></returns>
-        public async Task<bool> UploadArticleAsync(string sectionUri, string sectionTitle, string articleUri, string articleTitle, string articleBody, string articleExcerpt, bool isSection = false) {
-
+        public async Task<bool> UploadArticleAsync(string sectionUri, string sectionTitle, 
+            string articleUri, string articleTitle, string articleBody, string articleExcerpt, 
+            bool isSection = false) 
+        {
             if (string.IsNullOrEmpty(sectionUri)) {
                 return await UploadArticleAsync(articleUri, articleTitle, articleBody, articleExcerpt, isSection);
             }
@@ -880,12 +886,14 @@ namespace Aistant.KbService {
 
 
 
-    public class KbRequestError : Exception {
+    public class KbRequestError : Exception 
+    {
         public KbRequestError(string message) : base(message) {
         }
     }
 
-    public class InvalidActionException : Exception {
+    public class InvalidActionException : Exception 
+    {
         public InvalidActionException(string message): base(message){
         }
     }

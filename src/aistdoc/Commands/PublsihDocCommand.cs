@@ -20,19 +20,22 @@ namespace aistdoc
             command.HelpOption("-?|-h|--help");
 
             var configOp = command.Option("--config:<filename> | -c:<filename>", "Config file name", optionType: CommandOptionType.SingleOrNoValue);
+            var assembliesOp = command.Option("--assemblies:<folder> | -i: <folder>", "The path to assemblies and XML files", optionType: CommandOptionType.SingleOrNoValue);
             var outputOp = command.Option("--output:<folder> | -o: <folder>", "Output path", optionType: CommandOptionType.SingleOrNoValue);
                                 
-            Func<int> runCommandFunc = new PublsihDocCommand(configOp, outputOp).Run;
+            Func<int> runCommandFunc = new PublsihDocCommand(configOp, assembliesOp, outputOp).Run;
             command.OnExecute(runCommandFunc);
         }
 
         private readonly CommandOption _configOp;
 
+        private readonly CommandOption _inputOp;
         private readonly CommandOption _outputOp;
 
-        public PublsihDocCommand(CommandOption configOp, CommandOption outputOp)
+        public PublsihDocCommand(CommandOption configOp, CommandOption inputOp, CommandOption outputOp)
         {
             _configOp = configOp;
+            _inputOp = inputOp;
             _outputOp = outputOp;
         }
 
@@ -77,7 +80,14 @@ namespace aistdoc
                     generator = new TypeScriptDocGenerator(configuration);
                 }
                 else {
-                    generator = new CSharpDocGenerator(configuration, logger, _outputOp.Value());
+                    var options = new CSharpDocGeneratorOptions();
+                    options.AistantSettings = aistantSettings;
+                    options.AssembliesPath = _inputOp.HasValue() ? _inputOp.Value() : configuration.GetSection("source:path").Get<string>();
+                    options.PackagesPath = configuration.GetSection("source:packages").Get<string>();
+                    options.OutputPath = _outputOp.Value();
+                    options.FileRegexPattern = configuration.GetSection("source:filter:assembly").Get<string>();
+                    options.NamespacePattern = configuration.GetSection("source:filter:namespace").Get<string>();
+                    generator = new CSharpDocGenerator(options, logger);
                 }
 
                 var articleCount = generator.Generate(publisher);

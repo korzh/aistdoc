@@ -13,27 +13,35 @@ namespace aistdoc
     internal class CSharpDocGenerator : IDocGenerator
     {
         private CSharpDocGeneratorOptions _options;
-        private readonly string _outputPath;
         private readonly List<MarkdownableSharpType> _types = new List<MarkdownableSharpType>();
         private readonly ILogger _logger;
 
-        private readonly string _srcPath;
+        private readonly string _assembliesPath;
         private readonly string _packagesPath;
 
         public CSharpDocGenerator(CSharpDocGeneratorOptions options, ILogger logger)
         {
             _options = options;
 
-            _srcPath = options.AssembliesPath != null ? Path.GetFullPath(options.AssembliesPath) : null;
-            _packagesPath = options.PackagesPath != null? Path.GetFullPath(options.PackagesPath) : null;
+            _assembliesPath = !string.IsNullOrEmpty(options.AssembliesPath) ? Path.GetFullPath(options.AssembliesPath) : null;
+            _packagesPath = !string.IsNullOrEmpty(options.PackagesPath) ? Path.GetFullPath(options.PackagesPath) : null;
 
-            if (_srcPath == null && _packagesPath == null)
-                throw new Exception("Either aseemblies path or packages path is required");
+            if (_assembliesPath == null && _packagesPath == null)
+                throw new Exception("Either assemblies path or packages path is required");
 
-            if (_options.StartSectionTitle == null) {
-                _options.StartSectionTitle = _options.AistantSettings.Section.Title;
-            } 
+            if (string.IsNullOrEmpty(_options.RootSectionTitle)) {
+                if (_options.AistantSettings?.Section.Title == null) {
+                    throw new Exception("Section title is not defined");
+                }
+                _options.RootSectionTitle = _options.AistantSettings.Section.Title;
+            }
 
+            if (string.IsNullOrEmpty(_options.RootSectionUri)) {
+                if (_options.AistantSettings?.Section.Title == null) {
+                    throw new Exception("Section URI is not defined");
+                }
+                _options.RootSectionUri = _options.AistantSettings.Section.Uri;
+            }
             _logger = logger;
         }
 
@@ -55,7 +63,7 @@ namespace aistdoc
                   : null;
 
             var library = new CSharpLibrary();
-            library.RootPath = _options.AistantSettings?.Section?.Uri ?? "";
+            library.RootPath = _options.RootSectionUri;
             var packagesFiles = Directory.GetFiles(_packagesPath, "*.nupkg");
             foreach (var packageFilePath in packagesFiles) {
                 _logger.LogInformation($"Loading package {packageFilePath}...");
@@ -93,9 +101,9 @@ namespace aistdoc
             };
 
             var library = new CSharpLibrary();
-            library.RootPath = _options.AistantSettings?.Section?.Uri ?? "";
+            library.RootPath = _options.RootSectionUri;
 
-            var assemblyFiles = Directory.GetFiles(_srcPath).Where(isFileToProcess).ToList();
+            var assemblyFiles = Directory.GetFiles(_assembliesPath).Where(isFileToProcess).ToList();
             foreach (var assemblyFilePath in assemblyFiles)
             {
                 _logger.LogInformation($"Loading assembly {assemblyFilePath}...");
@@ -109,7 +117,7 @@ namespace aistdoc
 
         public int Generate(IArticlePublisher publisher)
         {
-            _logger?.LogInformation($"Processing assemblies in {_srcPath}...");
+            _logger?.LogInformation($"Processing assemblies in {_assembliesPath}...");
             LoadLibraryTypes();
 
             var dest = Directory.GetCurrentDirectory();
@@ -150,7 +158,7 @@ namespace aistdoc
 
                     var namespaceTypes = namespaceGroup.OrderBy(x => x.Name).Distinct(new MarkdownableTypeEqualityComparer());
                     foreach (var item in namespaceTypes) {
-                        SetLinks(item, _types, _options.StartSectionUri, _options.StartSectionTitle);
+                        SetLinks(item, _types, _options.RootSectionUri, _options.RootSectionTitle);
 
                         string itemName = item.GetNameWithKind();
 
@@ -216,10 +224,8 @@ namespace aistdoc
             string url = packageName.MakeUriFromString()
                                 .CombineWithUri((nameSpace + " namespace").MakeUriFromString()
                                 .CombineWithUri(foundTypeNameWithKind.MakeUriFromString()));
-            if (string.IsNullOrEmpty(_outputPath)) {
-                if (!string.IsNullOrEmpty(sectionUri)) {
-                    url = sectionUri.CombineWithUri(url);
-                }
+            if (!string.IsNullOrEmpty(sectionUri)) {
+                url = sectionUri.CombineWithUri(url);
             }
 
             return $"[{typeFullName}]({url})";
@@ -234,9 +240,9 @@ namespace aistdoc
 
         public string OutputPath { get; set; } = null;
 
-        public string StartSectionTitle { get; set; }
+        public string RootSectionTitle { get; set; }
 
-        public string StartSectionUri { get; set; }
+        public string RootSectionUri { get; set; }
 
         public AistantSettings AistantSettings { get; set; }
         public string FileRegexPattern { get; internal set; }

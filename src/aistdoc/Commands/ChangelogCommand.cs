@@ -1,16 +1,14 @@
-﻿using System;
-using System.Linq;
+﻿using Aistant.KbService;
+using LibGit2Sharp;
+using McMaster.Extensions.CommandLineUtils;
+using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Collections.Generic;
-
-using Microsoft.Extensions.Configuration;
-
-using McMaster.Extensions.CommandLineUtils;
-
-using LibGit2Sharp;
-using Aistant.KbService;
 
 namespace aistdoc
 { 
@@ -132,6 +130,8 @@ namespace aistdoc
         { 
             public Commit Source { get; set; }
             public string Type { get; set; }
+
+            public string Tag { get; set; }
         }
 
         CommandArgument<string> _projectArg;
@@ -176,11 +176,30 @@ namespace aistdoc
                 var commitGroups = GetCommitGroups(project);
 
                 var releaseNotes = BuildReleaseNotes(project, commitGroups);
-                File.WriteAllText(OutputPath, releaseNotes);
 
-                var changelog = _aistantSettings.Changelogs.Find(cl => cl.Id == project.Changelog);
-                if (!string.IsNullOrEmpty(changelog?.Uri)) {
-                    PublishToAistant(project, changelog, releaseNotes);
+                if (!string.IsNullOrEmpty(OutputPath)) {
+                    File.WriteAllText(OutputPath, releaseNotes);
+                }
+
+                if (_aistantSettings != null && _aistantSettings.Publish) {
+                    var changelog = _aistantSettings.Changelogs.Find(cl => cl.Id == project.Changelog);
+                    var service = new AistantKbService(_aistantSettings, null);
+                    var article = service.GetArticleAsync(changelog.Uri, loadById: true).Result;
+                    if (article != null) {
+                        article.Content = UpdateChangelogContent(project, changelog, article.Content, releaseNotes);
+                    }
+                    else {
+                        article = new Aistant.KbService.Models.AistantArticle {
+                            Title = "Changelog",
+                            Content = UpdateChangelogContent(project, changelog, article.Content, releaseNotes),
+                            Excerpt = ""
+                        };
+                    }
+
+                    var successed = service.UploadArticleAsync(changelog.Uri, "Changelog", article.Content, article.Excerpt).Result;
+                    if (!successed) {
+                        throw new Exception("Article was not published");
+                    }
                 }
 
                 return 0;
@@ -248,6 +267,7 @@ namespace aistdoc
                     }
  
                     Tag tagTo = repo.Tags["v" + nextVersion];
+                    Tag currentTag = null;
                     return repo.Commits
                         .QueryBy(new CommitFilter
                         {
@@ -257,12 +277,20 @@ namespace aistdoc
                         .Select(c =>
                         {
                             var match = commitTypeRegex.Match(c.MessageShort ?? "");
+
+                            // Find the first tag that points to this commit (if any)
+                            var tag = repo.Tags.FirstOrDefault(t => t.Target.Sha == c.Sha);
+                            if (tag != null) {
+                                currentTag = tag;
+                            }
+
                             return new CommitWithType
                             {
                                 Source = c,
                                 Type = match.Success
                                     ? match.Groups[1].ToString().ToUpperInvariant()
-                                    : null
+                                    : null,
+                                Tag = currentTag?.FriendlyName ?? ""
                             };
                         })
                         .Where(cwt => cwt.Type != null);
@@ -407,56 +435,51 @@ namespace aistdoc
             return  mb.ToString();
         }
 
-        private void PublishToAistant(ProjectSettings project, Changelog changelog, string releaseNotes)
+        private string UpdateChangelogContent(ProjectSettings project, Changelog changelog, string content, string releaseNotes)
         {
             var version = new Version(Version);
-
-            var service = new AistantKbService(_aistantSettings, null);
-            var article = service.GetArticleAsync(changelog.Uri, loadById: true).Result;
-            if (article != null) {
-
+            if (!string.IsNullOrEmpty(content)) {
                 var changeLogPattern = "<div(.*?)id=\"changelog-start\"></div>";
                 var divVerPattern = "<div(.*?)id=\"{0}/{1}\"(.*?)(data-released=\"(.*?)\")?(.*?)></div>";
-                var changelogPatternMatch = Regex.Match(article.Content, changeLogPattern);
+                var changelogPatternMatch = Regex.Match(content, changeLogPattern);
                 if (changelogPatternMatch.Success) {
-
-                    var divCurrVerMatch = Regex.Match(article.Content,
+                    var divCurrVerMatch = Regex.Match(content,
                         string.Format(divVerPattern, project.Tag, version.GetVersionWithourPreRelease()));
 
                     var indexForNextVerSearch = (divCurrVerMatch.Success)
                         ? divCurrVerMatch.Index + divCurrVerMatch.Length
                         : changelogPatternMatch.Index + changelogPatternMatch.Length;
 
-                    Match divNextVerMatch = Regex.Match(article.Content.Substring(indexForNextVerSearch),
+                    Match divNextVerMatch = Regex.Match(content.Substring(indexForNextVerSearch),
                         string.Format(divVerPattern, "(.*?)", "(.*?)"));
 
                     var startIndex = divCurrVerMatch.Success
-                              ? divCurrVerMatch.Index 
+                              ? divCurrVerMatch.Index
                               : changelogPatternMatch.Index + changelogPatternMatch.Length;
 
                     var endIndex = divNextVerMatch.Success
                         ? divNextVerMatch.Index + indexForNextVerSearch
-                        : article.Content.Length;
+                        : content.Length;
 
-                    var result = article.Content.Substring(0, startIndex);
+                    var result = content.Substring(0, startIndex);
                     result += '\n';
                     result += $"<div id=\"{project.Tag}/{version.GetVersionWithourPreRelease()}\" data-released=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n\n";
                     result += releaseNotes;
 
-                    if (endIndex != article.Content.Length) {
-                        result += article.Content.Substring(endIndex);
+                    if (endIndex != content.Length) {
+                        result += content.Substring(endIndex);
                     }
 
-                    article.Content = result;
+                    return result;
                 }
                 else {
-                    var sb = new StringBuilder(article.Content)
+                    var sb = new StringBuilder(content)
                        .AppendLine()
                        .AppendLine("<div id=\"changelog-start\"></div>")
                        .AppendLine($"<div id=\"{project.Tag}/{version.GetVersionWithourPreRelease()}\" data-released=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n")
                        .Append(releaseNotes);
 
-                    article.Content = sb.ToString();
+                    return sb.ToString();
                 }
             }
             else {
@@ -465,21 +488,8 @@ namespace aistdoc
                   .AppendLine($"<div id=\"{project.Tag}/{version.GetVersionWithourPreRelease()}\" data-released=\"{DateTime.UtcNow.ToString("yyyy-MM-dd")}\"></div>\n")
                   .Append(releaseNotes);
 
-
-                article = new Aistant.KbService.Models.AistantArticle
-                {
-                    Title = "Changelog",
-                    Content = sb.ToString(),
-                    Excerpt = ""
-
-                };
+                return sb.ToString();
             }
-
-            var successed = service.UploadArticleAsync(changelog.Uri, "Changelog", article.Content, article.Excerpt).Result;
-            if (!successed) {
-                throw new Exception("Article was not published");
-            }
-
         }
     }
 }

@@ -109,10 +109,9 @@ namespace aistdoc
 
     class ChangelogCommand : ICommand
     {
-
         public static void Configure(CommandLineApplication command)
         {
-            command.Description = "Creates release notes for new version tag from repository";
+            command.Description = "Creates release notes for new version tag from the repository";
             command.HelpOption("-?|-h|--help");
 
             var projectArg = command.Argument<string>("project", "The project id")
